@@ -13,8 +13,20 @@ const buoySchema = new Schema({
 
 const Buoy = model('Buoy', buoySchema)
 
+export interface BuoyParams {
+  limit: number
+  buoy?: string
+}
+
+function isDuplicateKeyError(err: unknown): err is { code: number } {
+  if (typeof err !== 'object' || err === null) return false
+  if (!('code' in err)) return false
+  const e = err as { code: unknown }
+  return typeof e.code === 'number' && e.code === 11000
+}
+
 export class BuoyModel {
-  static async getBuoys({ limit, buoy }: { limit: number; buoy?: string }) {
+  static async getBuoys({ limit, buoy }: BuoyParams) {
     try {
       const buoys: formatedBuoys[] = await Buoy.find({ station: buoy })
         .sort({ date: -1 })
@@ -78,19 +90,27 @@ export class BuoyModel {
   }
 
   static async addMultipleBuoys(station: string, buoys: formatedBuoys[]) {
+    if (!buoys.length) return
+
+    const docs = buoys.map(
+      ({ date, period, height, avgDirection, peakDirection, tm02 }) => ({
+        station,
+        date: new Date(date),
+        period: period,
+        height: height,
+        avgDirection: avgDirection,
+        peakDirection: peakDirection,
+        tm02: tm02,
+      }),
+    )
+
     try {
-      const bulkOps = buoys.map(({ date, ...rest }) => ({
-        updateOne: {
-          filter: { station, date },
-          update: { date, ...rest },
-          upsert: true,
-        },
-      }))
-      await Buoy.bulkWrite(bulkOps)
-    } catch (err) {
-      if (err instanceof Error) {
-        throw new Error("Couldn't add multiple buoys to the database")
+      await Buoy.insertMany(docs, { ordered: false })
+    } catch (err: unknown) {
+      if (isDuplicateKeyError(err)) {
+        return
       }
+      throw err
     }
   }
 }

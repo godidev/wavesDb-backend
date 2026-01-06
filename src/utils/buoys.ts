@@ -49,7 +49,7 @@ function formatValue(id: id, value: value): number {
 }
 
 function organizeData(data: BuoyFetch[]) {
-  return data.map(({ fecha: date, datos }) => {
+  return data.map(({ fecha, datos }) => {
     const formattedData: DbBuoyRecord['datos'] = {
       'Periodo de Pico': 0,
       'Altura Signif. del Oleaje': 0,
@@ -60,17 +60,14 @@ function organizeData(data: BuoyFetch[]) {
 
     datos.forEach(({ id, valor, nombreParametro }) => {
       const formattedValue = formatValue(id, valor)
-      if (
-        formattedValue !== 0 &&
-        Object.keys(formattedData).includes(nombreParametro)
-      ) {
+      if (Object.keys(formattedData).includes(nombreParametro)) {
         formattedData[nombreParametro as keyof typeof formattedData] =
           formattedValue
       }
     })
 
     return {
-      date: formatDate(date),
+      date: formatDate(fecha),
       period: formattedData['Periodo de Pico'],
       height: formattedData['Altura Signif. del Oleaje'],
       avgDirection: formattedData['Direcc. Media de Proced.'],
@@ -80,8 +77,14 @@ function organizeData(data: BuoyFetch[]) {
   })
 }
 
-const formatDate = (date: string): Date => {
-  return new Date(date.replace(' ', 'T').split('.')[0] + 'Z')
+const formatDate = (date: string): number => {
+  const input = date
+
+  const iso = input.replace(' ', 'T').replace('.0', '') + 'Z'
+
+  const timestamp = Date.parse(iso)
+  console.log(timestamp)
+  return timestamp
 }
 
 async function updateBuoysData({ station, body }: buoyData) {

@@ -20,7 +20,7 @@ export interface buoyFetchDatos {
 }
 
 type formatedBuoys = {
-  date: Date
+  date: number
   station: string
   period: number
   height: number
