@@ -30,7 +30,7 @@ async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
     const response = await fetch(url, options)
     const data = await response.json()
     return data.period_types.h.parts.basic.content
-  } catch (err) {
+  } catch {
     throw new Error('Error fetching surf forecast')
   }
 }
@@ -125,7 +125,7 @@ export async function scheduledUpdate() {
     const parsedData = await parseForecast(newHtml)
     await SurfForecastModel.addMultipleForecast(parsedData)
     console.log('updated surf forecast')
-  } catch (err) {
+  } catch {
     console.log('Error updating surf forecast')
   }
 }

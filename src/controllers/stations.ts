@@ -15,7 +15,7 @@ export class stationController {
     try {
       const { name, station } = req.body
       console.log({ name, station })
-      const response = await StationModel.addStation({ name, station })
+      await StationModel.addStation({ name, station })
       res.status(200).send('Station data updated successfully!')
     } catch (err) {
       res.status(500).json({ error: err })

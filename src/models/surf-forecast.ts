@@ -29,7 +29,7 @@ export class SurfForecastModel {
         .limit(limit)
         .select('-__v -_id')
       return forecast
-    } catch (err) {
+    } catch {
       throw new Error("Couldn't get forecasts from the database")
     }
   }
@@ -40,7 +40,7 @@ export class SurfForecastModel {
         .sort({ date: -1 })
         .select('-_id -__v')
       return lastData
-    } catch (err) {
+    } catch {
       throw new Error("Couldn't get last forecast data from the database")
     }
   }
@@ -59,7 +59,7 @@ export class SurfForecastModel {
           },
         )
       })
-    } catch (err) {
+    } catch {
       throw new Error("Couldn't add multiple forecasts to the database")
     }
   }
