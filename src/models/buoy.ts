@@ -77,17 +77,6 @@ export class BuoyModel {
     }
   }
 
-  static async addBuoy(buoys: buoyFetchDatos) {
-    try {
-      const data = await Buoy.insertMany(buoys)
-      return data
-    } catch (err) {
-      if (err instanceof Error) {
-        throw new Error("Couldn't add multiple buoys to the database")
-      }
-    }
-  }
-
   static async addMultipleBuoys(station: string, buoys: formatedBuoys[]) {
     if (!buoys.length) return
 
