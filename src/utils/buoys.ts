@@ -56,7 +56,6 @@ function organizeData(data: BuoyFetch[]) {
       'Altura Signif. del Oleaje': 0,
       'Direcc. Media de Proced.': 0,
       'Direcc. de pico de proced.': 0,
-      'Periodo Medio Tm02': 0,
     }
 
     datos.forEach(({ id, valor, nombreParametro }) => {
@@ -67,13 +66,14 @@ function organizeData(data: BuoyFetch[]) {
       }
     })
 
+    const peak = formattedData['Direcc. de pico de proced.']
+
     return {
       date: formatDate(fecha),
       period: formattedData['Periodo de Pico'],
       height: formattedData['Altura Signif. del Oleaje'],
       avgDirection: formattedData['Direcc. Media de Proced.'],
-      peakDirection: formattedData['Direcc. de pico de proced.'],
-      tm02: formattedData['Periodo Medio Tm02'],
+      ...(peak !== 0 && { peakDirection: peak }),
     } as formatedBuoys
   })
 }

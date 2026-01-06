@@ -26,7 +26,6 @@ type formatedBuoys = {
   height: number
   avgDirection: number
   peakDirection?: number
-  tm02: number
 }
 
 export interface station {
@@ -41,7 +40,6 @@ export interface DbBuoyRecord {
     'Altura Signif. del Oleaje': number
     'Direcc. Media de Proced.': number
     'Direcc. de pico de proced.'?: number
-    'Periodo Medio Tm02': number
   }
 }
 

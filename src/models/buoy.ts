@@ -7,8 +7,7 @@ const buoySchema = new Schema({
   period: Number,
   height: Number,
   avgDirection: Number,
-  peakDirection: Number,
-  tm02: Number,
+  peakDirection: { type: Number, required: false },
 })
 
 const Buoy = model('Buoy', buoySchema)
@@ -93,14 +92,13 @@ export class BuoyModel {
     if (!buoys.length) return
 
     const docs = buoys.map(
-      ({ date, period, height, avgDirection, peakDirection, tm02 }) => ({
+      ({ date, period, height, avgDirection, peakDirection }) => ({
         station,
         date: new Date(date),
         period: period,
         height: height,
         avgDirection: avgDirection,
-        peakDirection: peakDirection,
-        tm02: tm02,
+        ...(peakDirection != undefined && { peakDirection: peakDirection }),
       }),
     )
 
