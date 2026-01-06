@@ -72,7 +72,7 @@ function organizeData(data: BuoyFetch[]) {
       period: formattedData['Periodo de Pico'],
       height: formattedData['Altura Signif. del Oleaje'],
       avgDirection: formattedData['Direcc. Media de Proced.'],
-      peakDirection: formattedData['Direcc. Media de Proced.'],
+      peakDirection: formattedData['Direcc. de pico de proced.'],
       tm02: formattedData['Periodo Medio Tm02'],
     } as formatedBuoys
   })
