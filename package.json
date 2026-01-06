@@ -6,7 +6,7 @@
     "dev": "tsx --env-file=.env --watch ./src/index.ts ",
     "build": "tsc",
     "start": "pm2 start dist/index.js --name backend --node-args='--env-file=./dist/.env'",
-    "lint": "eslint",
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -16,13 +16,13 @@
   "description": "",
   "dependencies": {
     "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
     "express": "^4.21.1",
     "mongoose": "^8.8.3",
-    "node-cron": "^3.0.3",
-    "cors": "^2.8.5"
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.16.0",
+    "@eslint/js": "^9.39.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/mongoose": "^5.11.96",
@@ -33,6 +33,6 @@
     "globals": "^15.13.0",
     "prettier": "3.4.1",
     "tsx": "^4.19.2",
-    "typescript-eslint": "^8.17.0"
+    "typescript-eslint": "^8.52.0"
   }
 }
