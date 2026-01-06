@@ -6,7 +6,9 @@
     "dev": "tsx --env-file=.env --watch ./src/index.ts ",
     "build": "tsc",
     "start": "pm2 start dist/index.js --name backend --node-args='--env-file=./dist/.env'",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "",
