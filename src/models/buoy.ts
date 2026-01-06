@@ -84,10 +84,10 @@ export class BuoyModel {
       ({ date, period, height, avgDirection, peakDirection }) => ({
         station,
         date: new Date(date),
-        period: period,
-        height: height,
-        avgDirection: avgDirection,
-        ...(peakDirection != undefined && { peakDirection: peakDirection }),
+        period,
+        height,
+        avgDirection,
+        ...(peakDirection != undefined && { peakDirection }),
       }),
     )
 
