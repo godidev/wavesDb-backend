@@ -1,6 +1,7 @@
+import { DateTime } from 'luxon'
 import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '../models/surf-forecast'
-import { WaveData } from '../types'
+import { DataSwellState, WaveData } from '../types'
 
 async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
   const url = `https://es.surf-forecast.com/breaks/${beach}/forecasts/data?parts=basic&period_types=h&forecast_duration=48h`
@@ -35,24 +36,24 @@ async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
   }
 }
 
-const convertDate = ({ day, hour }: { day: number; hour: number }) => {
-  if (day < lastSeenDay) {
-    if (month++ > 11) {
-      month = 0
-      year++
-    }
-  }
-  lastSeenDay = day
-
-  return new Date(year, month, day, hour, 0, 0, 0)
-}
-
-const now = new Date()
-let month = now.getMonth()
-let year = now.getFullYear()
-let lastSeenDay: number = 0
-
 async function parseForecast(html: string) {
+  const now = new Date()
+  let month = now.getMonth()
+  let year = now.getFullYear()
+  let lastSeenDay = 0
+
+  const convertDate = ({ day, hour }: { day: number; hour: number }) => {
+    if (day < lastSeenDay) {
+      if (month++ > 11) {
+        month = 0
+        year++
+      }
+    }
+    lastSeenDay = day
+
+    return madridToUtcDate(year, month, day, hour)
+  }
+
   const $ = cheerio.load(html)
 
   const waves = $('td.forecast-table__cell.forecast-table-wave-graph__cell')
@@ -67,7 +68,7 @@ async function parseForecast(html: string) {
     const dataDate = waveElement.attr('data-date')
     const dataSwellState = JSON.parse(
       waveElement.attr('data-swell-state') as string,
-    )
+    ) as DataSwellState
     const dataWind = JSON.parse(waveElement.attr('data-wind') as string)
 
     const [day, hour] = getDate(dataDate as string)
@@ -76,32 +77,33 @@ async function parseForecast(html: string) {
     const energyElement = energy.get(index)
     const energyValue = energyElement ? $(energyElement).text() : ''
 
-    const {
-      period = 0,
-      angle: waveDirection = 0,
-      height = 0,
-    } = dataSwellState.find((item: WaveData) => item !== null) || {}
+    const swells = dataSwellState.filter((item) => item !== null)
+
+    const validSwells = swells.map(({ period, angle, height }) => ({
+      angle: invert(angle),
+      height,
+      period,
+    }))
 
     const {
       speed,
-      direction: { angle: windAngle, letters: windLetters },
+      direction: { angle: windAngle },
     } = dataWind
 
     data.push({
       date: finalDate,
-      height,
-      period,
-      waveDirection: invertAngle(waveDirection),
-      windSpeed: invertAngle(speed),
-      windAngle: invertAngle(windAngle),
-      windLetters,
-      energy: energyValue,
+      validSwells,
+      wind: {
+        speed: invert(speed),
+        angle: invert(windAngle),
+      },
+      energy: Number(energyValue),
     })
   })
   return data
 }
 
-const invertAngle = (angle: number) => (angle > 180 ? angle - 180 : angle + 180)
+const invert = (item: number) => (item > 180 ? item - 180 : item + 180)
 
 function getDate(date: string): number[] {
   const [, day, hour] = date.split(' ')
@@ -109,16 +111,13 @@ function getDate(date: string): number[] {
   const [, time, period] = /^(\d+)(AM|PM)$/.exec(hour)!
   const parsedTime = parseInt(time)
 
-  if (period === 'PM') {
-    return parsedTime === 12
-      ? [parsedDay, parsedTime]
-      : [parsedDay, parsedTime + 12]
+  if (period === 'AM') {
+    return parsedTime === 12 ? [parsedDay, 0] : [parsedDay, parsedTime]
   }
-
-  return [parsedDay, parsedTime]
+  return parsedTime === 12 ? [parsedDay, 12] : [parsedDay, parsedTime + 12]
 }
 
-export async function scheduledUpdate() {
+export async function updateSurfForecast() {
   try {
     const html = await fetchSurfForecast()
     const newHtml = `<html><body><table>${html}</table></body></html>`
@@ -128,4 +127,26 @@ export async function scheduledUpdate() {
   } catch {
     console.log('Error updating surf forecast')
   }
+}
+
+function madridToUtcDate(
+  year: number,
+  month0: number,
+  day: number,
+  hour: number,
+): Date {
+  return DateTime.fromObject(
+    {
+      year,
+      month: month0 + 1,
+      day,
+      hour,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    },
+    { zone: 'Europe/Madrid' },
+  )
+    .toUTC()
+    .toJSDate()
 }

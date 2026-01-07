@@ -1,18 +1,35 @@
-import { Schema, model } from 'mongoose'
+import { Schema, model, InferSchemaType } from 'mongoose'
 import { WaveData } from '../types'
 
-const SurfForecastSchema = new Schema({
-  date: Date,
-  height: Number,
-  period: Number,
-  waveDirection: Number,
-  windSpeed: Number,
-  windAngle: Number,
-  windLetters: String,
-  energy: String,
+const SwellSchema = new Schema(
+  {
+    period: { type: Number, required: true },
+    angle: { type: Number, required: true },
+    height: { type: Number, required: true },
+  },
+  { _id: false },
+)
+
+const WindSchema = new Schema(
+  {
+    speed: { type: Number, required: true },
+    angle: { type: Number, required: true },
+  },
+  { _id: false },
+)
+
+export const SurfForecastSchema = new Schema({
+  date: { type: Date, required: true },
+  validSwells: { type: [SwellSchema], required: true, default: [] },
+  wind: { type: WindSchema, required: true },
+  energy: { type: Number, required: true },
 })
 
-const SurfForecast = model('SurfForecast', SurfForecastSchema)
+SurfForecastSchema.index({ date: 1 }, { unique: true })
+
+export type SurfForecastDoc = InferSchemaType<typeof SurfForecastSchema>
+
+const SurfForecast = model<SurfForecastDoc>('SurfForecast', SurfForecastSchema)
 
 export class SurfForecastModel {
   static async getSurfForecasts({
