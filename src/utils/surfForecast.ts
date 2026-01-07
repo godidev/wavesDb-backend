@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '../models/surf-forecast'
 import { WaveData } from '../types'
@@ -35,24 +36,24 @@ async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
   }
 }
 
-const convertDate = ({ day, hour }: { day: number; hour: number }) => {
-  if (day < lastSeenDay) {
-    if (month++ > 11) {
-      month = 0
-      year++
-    }
-  }
-  lastSeenDay = day
-
-  return new Date(year, month, day, hour, 0, 0, 0)
-}
-
-const now = new Date()
-let month = now.getMonth()
-let year = now.getFullYear()
-let lastSeenDay: number = 0
-
 async function parseForecast(html: string) {
+  const now = new Date()
+  let month = now.getMonth()
+  let year = now.getFullYear()
+  let lastSeenDay = 0
+
+  const convertDate = ({ day, hour }: { day: number; hour: number }) => {
+    if (day < lastSeenDay) {
+      if (month++ > 11) {
+        month = 0
+        year++
+      }
+    }
+    lastSeenDay = day
+
+    return madridToUtcDate(year, month, day, hour)
+  }
+
   const $ = cheerio.load(html)
 
   const waves = $('td.forecast-table__cell.forecast-table-wave-graph__cell')
@@ -91,9 +92,9 @@ async function parseForecast(html: string) {
       date: finalDate,
       height,
       period,
-      waveDirection: invertAngle(waveDirection),
-      windSpeed: invertAngle(speed),
-      windAngle: invertAngle(windAngle),
+      waveDirection: invert(waveDirection),
+      windSpeed: invert(speed),
+      windAngle: invert(windAngle),
       windLetters,
       energy: energyValue,
     })
@@ -101,7 +102,7 @@ async function parseForecast(html: string) {
   return data
 }
 
-const invertAngle = (angle: number) => (angle > 180 ? angle - 180 : angle + 180)
+const invert = (item: number) => (item > 180 ? item - 180 : item + 180)
 
 function getDate(date: string): number[] {
   const [, day, hour] = date.split(' ')
@@ -109,13 +110,10 @@ function getDate(date: string): number[] {
   const [, time, period] = /^(\d+)(AM|PM)$/.exec(hour)!
   const parsedTime = parseInt(time)
 
-  if (period === 'PM') {
-    return parsedTime === 12
-      ? [parsedDay, parsedTime]
-      : [parsedDay, parsedTime + 12]
+  if (period === 'AM') {
+    return parsedTime === 12 ? [parsedDay, 0] : [parsedDay, parsedTime]
   }
-
-  return [parsedDay, parsedTime]
+  return parsedTime === 12 ? [parsedDay, 12] : [parsedDay, parsedTime + 12]
 }
 
 export async function updateSurfForecast() {
@@ -128,4 +126,26 @@ export async function updateSurfForecast() {
   } catch {
     console.log('Error updating surf forecast')
   }
+}
+
+function madridToUtcDate(
+  year: number,
+  month0: number,
+  day: number,
+  hour: number,
+): Date {
+  return DateTime.fromObject(
+    {
+      year,
+      month: month0 + 1,
+      day,
+      hour,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    },
+    { zone: 'Europe/Madrid' },
+  )
+    .toUTC()
+    .toJSDate()
 }
