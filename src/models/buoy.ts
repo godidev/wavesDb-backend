@@ -77,11 +77,11 @@ export class BuoyModel {
     }
   }
 
-  static async addMultipleBuoys(station: string, buoys: formatedBuoys[]) {
+  static async addMultipleBuoys(buoys: formatedBuoys[]) {
     if (!buoys.length) return
 
     const docs = buoys.map(
-      ({ date, period, height, avgDirection, peakDirection }) => ({
+      ({ date, period, height, avgDirection, peakDirection, station }) => ({
         station,
         date: new Date(date),
         period,

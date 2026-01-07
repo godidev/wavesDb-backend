@@ -1,4 +1,4 @@
-import { BuoyFetch, DbBuoyRecord, formatedBuoys, id, value } from '../types.js'
+import { BuoyFetch, DbBuoyRecord, formatedBuoys, id } from '../types.js'
 import { BuoyModel } from '../models/buoy'
 import buoys from '../buoyData.json'
 
@@ -34,7 +34,7 @@ async function fetchBuoys({
   }
 }
 
-export function formatValue(id: id, value: value): number {
+export function formatValue(id: id, value: string): number {
   switch (id) {
     case 34:
     case 13:
@@ -73,7 +73,7 @@ export function organizeData(data: BuoyFetch[]) {
       height: formattedData['Altura Signif. del Oleaje'],
       avgDirection: formattedData['Direcc. Media de Proced.'],
       ...(peak !== 0 && { peakDirection: peak }),
-    } as formatedBuoys
+    }
   })
 }
 
@@ -86,7 +86,10 @@ export const formatDate = (date: string): number => {
   return timestamp
 }
 
-export async function updateBuoysData({ station, body }: buoyData) {
+export async function updateBuoysData({
+  station,
+  body,
+}: buoyData): Promise<formatedBuoys[]> {
   const data = await fetchBuoys({ station, body })
 
   if (!data) {
@@ -94,7 +97,7 @@ export async function updateBuoysData({ station, body }: buoyData) {
   }
   const formatedData = organizeData(data)
 
-  return formatedData
+  return formatedData.map((item) => ({ station, ...item }))
 }
 
 export async function scheduledUpdate() {
@@ -102,7 +105,7 @@ export async function scheduledUpdate() {
     buoys.forEach(async ({ station, body, name }) => {
       console.log(`Fetching new Buoys for ${name}`)
       const newBuoys = await updateBuoysData({ station, body })
-      await BuoyModel.addMultipleBuoys(station, newBuoys)
+      await BuoyModel.addMultipleBuoys(newBuoys)
     })
     console.log('uploaded new Buoys')
   } catch (err) {
