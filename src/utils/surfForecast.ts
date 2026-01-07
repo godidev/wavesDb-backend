@@ -36,7 +36,7 @@ async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
   }
 }
 
-async function parseForecast(html: string) {
+export async function parseForecast(html: string) {
   const now = new Date()
   let month = now.getMonth()
   let year = now.getFullYear()
@@ -105,7 +105,7 @@ async function parseForecast(html: string) {
 
 const invert = (item: number) => (item > 180 ? item - 180 : item + 180)
 
-function getDate(date: string): number[] {
+export function getDate(date: string): number[] {
   const [, day, hour] = date.split(' ')
   const parsedDay = parseInt(day)
   const [, time, period] = /^(\d+)(AM|PM)$/.exec(hour)!

@@ -8,7 +8,11 @@
     "start": "pm2 start dist/index.js --name backend --node-args='--env-file=./dist/.env'",
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -30,11 +34,14 @@
     "@types/mongoose": "^5.11.96",
     "@types/node": "^22.10.1",
     "@types/node-cron": "^3.0.11",
+    "@types/supertest": "^6.0.3",
     "eslint": "^9.16.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.13.0",
     "prettier": "3.4.1",
+    "supertest": "^7.2.2",
     "tsx": "^4.19.2",
-    "typescript-eslint": "^8.52.0"
+    "typescript-eslint": "^8.52.0",
+    "vitest": "^4.0.16"
   }
 }

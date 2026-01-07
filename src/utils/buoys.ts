@@ -34,7 +34,7 @@ async function fetchBuoys({
   }
 }
 
-function formatValue(id: id, value: value): number {
+export function formatValue(id: id, value: value): number {
   switch (id) {
     case 34:
     case 13:
@@ -48,7 +48,7 @@ function formatValue(id: id, value: value): number {
   }
 }
 
-function organizeData(data: BuoyFetch[]) {
+export function organizeData(data: BuoyFetch[]) {
   return data.map(({ fecha, datos }) => {
     const formattedData: DbBuoyRecord['datos'] = {
       'Periodo de Pico': 0,
@@ -77,7 +77,7 @@ function organizeData(data: BuoyFetch[]) {
   })
 }
 
-const formatDate = (date: string): number => {
+export const formatDate = (date: string): number => {
   const input = date
 
   const iso = input.replace(' ', 'T').replace('.0', '') + 'Z'
@@ -86,7 +86,7 @@ const formatDate = (date: string): number => {
   return timestamp
 }
 
-async function updateBuoysData({ station, body }: buoyData) {
+export async function updateBuoysData({ station, body }: buoyData) {
   const data = await fetchBuoys({ station, body })
 
   if (!data) {

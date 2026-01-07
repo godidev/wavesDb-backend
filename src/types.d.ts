@@ -1,4 +1,4 @@
-type id = 34 | 13 | 20 | 21 | 32
+export type id = 34 | 13 | 20 | 21 | 32
 type value = Pick<fetchData, 'valor'>['valor']
 
 export interface BuoyFetch {
