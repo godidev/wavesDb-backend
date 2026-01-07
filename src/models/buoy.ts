@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose'
-import { buoyFetchDatos, formatedBuoys } from '../types'
+import { formatedBuoys } from '../types'
 
 const buoySchema = new Schema({
   station: { type: String, required: true },
