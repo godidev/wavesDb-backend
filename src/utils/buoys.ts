@@ -50,7 +50,6 @@ function formatValue(id: id, value: value): number {
 
 function organizeData(data: BuoyFetch[]) {
   return data.map(({ fecha, datos }) => {
-    console.log(datos)
     const formattedData: DbBuoyRecord['datos'] = {
       'Periodo de Pico': 0,
       'Altura Signif. del Oleaje': 0,
