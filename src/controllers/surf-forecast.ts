@@ -1,6 +1,6 @@
 import { SurfForecastModel } from '../models/surf-forecast'
 import { WaveData } from '../types'
-import { scheduledUpdate } from '../utils/surfForecast'
+import { updateSurfForecast } from '../utils/surfForecast'
 import { Request, Response } from 'express'
 
 export class SurfForecastController {
@@ -23,7 +23,7 @@ export class SurfForecastController {
 
   static async addNewForecasts(req: Request, res: Response) {
     try {
-      await scheduledUpdate()
+      await updateSurfForecast()
       res.status(200).send('Forecast data updated successfully!')
     } catch (err) {
       res.status(500).json({ error: err })
@@ -32,7 +32,7 @@ export class SurfForecastController {
 
   static async fetchSurfForecast(req: Request, res: Response) {
     try {
-      const retrieved = (await scheduledUpdate()) as unknown as WaveData[]
+      const retrieved = (await updateSurfForecast()) as unknown as WaveData[]
       await SurfForecastModel.addMultipleForecast(retrieved)
       res.json({ message: 'Forecast data updated successfully!' })
     } catch (err) {

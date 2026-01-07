@@ -118,7 +118,7 @@ function getDate(date: string): number[] {
   return [parsedDay, parsedTime]
 }
 
-export async function scheduledUpdate() {
+export async function updateSurfForecast() {
   try {
     const html = await fetchSurfForecast()
     const newHtml = `<html><body><table>${html}</table></body></html>`
