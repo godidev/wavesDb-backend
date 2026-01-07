@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '../models/surf-forecast'
-import { WaveData } from '../types'
+import { DataSwellState, WaveData } from '../types'
 
 async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
   const url = `https://es.surf-forecast.com/breaks/${beach}/forecasts/data?parts=basic&period_types=h&forecast_duration=48h`
@@ -68,7 +68,7 @@ async function parseForecast(html: string) {
     const dataDate = waveElement.attr('data-date')
     const dataSwellState = JSON.parse(
       waveElement.attr('data-swell-state') as string,
-    )
+    ) as DataSwellState
     const dataWind = JSON.parse(waveElement.attr('data-wind') as string)
 
     const [day, hour] = getDate(dataDate as string)
@@ -77,26 +77,27 @@ async function parseForecast(html: string) {
     const energyElement = energy.get(index)
     const energyValue = energyElement ? $(energyElement).text() : ''
 
-    const {
-      period = 0,
-      angle: waveDirection = 0,
-      height = 0,
-    } = dataSwellState.find((item: WaveData) => item !== null) || {}
+    const swells = dataSwellState.filter((item) => item !== null)
+
+    const validSwells = swells.map(({ period, angle, height }) => ({
+      angle: invert(angle),
+      height,
+      period,
+    }))
 
     const {
       speed,
-      direction: { angle: windAngle, letters: windLetters },
+      direction: { angle: windAngle },
     } = dataWind
 
     data.push({
       date: finalDate,
-      height,
-      period,
-      waveDirection: invert(waveDirection),
-      windSpeed: invert(speed),
-      windAngle: invert(windAngle),
-      windLetters,
-      energy: energyValue,
+      validSwells,
+      wind: {
+        speed: invert(speed),
+        angle: invert(windAngle),
+      },
+      energy: Number(energyValue),
     })
   })
   return data
