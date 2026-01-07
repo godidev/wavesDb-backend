@@ -5,13 +5,13 @@ import { buoysRouter } from './routes/buoys'
 import { scrapeRouter } from './routes/scrape'
 import { SurfForecastRouter } from './routes/surf-forecast'
 import { stationsRouter } from './routes/stations'
-const { PORT = 3000, MONGO_URL } = process.env
+const { PORT = 3000, MONGO_URL, NODE_ENV } = process.env
 
-if (!MONGO_URL) {
+if (!MONGO_URL && NODE_ENV !== 'test') {
   console.error(
     'MONGO_URL is not defined. Please check your environment variables.',
   )
-  process.exit(1) // Exit the process if MONGO_URL is not set
+  process.exit(1)
 }
 
 const app = express()
@@ -24,12 +24,16 @@ app.use('/scrape', scrapeRouter)
 app.use('/stations', stationsRouter)
 app.use('/surf-forecast', SurfForecastRouter)
 
-mongoose
-  .connect(MONGO_URL)
-  .then(() => {
-    console.log('Connected to database')
-    app.listen(PORT, () => {
-      console.log(`App listening on port ${PORT}`)
+export default app
+
+if (NODE_ENV !== 'test') {
+  mongoose
+    .connect(MONGO_URL!)
+    .then(() => {
+      console.log('Connected to database')
+      app.listen(PORT, () => {
+        console.log(`App listening on port ${PORT}`)
+      })
     })
-  })
-  .catch((err) => console.error(err))
+    .catch((err) => console.error(err))
+}
