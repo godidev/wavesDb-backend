@@ -87,7 +87,7 @@ export class BuoyModel {
         period,
         height,
         avgDirection,
-        ...(peakDirection != undefined && { peakDirection }),
+        ...(peakDirection !== undefined && { peakDirection }),
       }),
     )
 
