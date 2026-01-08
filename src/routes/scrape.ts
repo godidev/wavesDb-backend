@@ -1,4 +1,4 @@
-import Router, { Response } from 'express'
+import Router, { NextFunction, Response, Request } from 'express'
 import cron from 'node-cron'
 import { scheduledUpdate as scheduledUpdateBuoys } from '../utils/buoys'
 import { updateSurfForecast } from '../utils/surfForecast'
@@ -26,17 +26,31 @@ const scrapeAll = async (res?: Response) => {
   try {
     await executeTask(scheduledUpdateBuoys, 'Scrape of Buoys')
     await executeTask(updateSurfForecast, 'Scrape of Surf-Forecast')
-    if (res)
+
+    if (res) {
       res.status(200).json({ message: 'Scraping completed successfully!' })
+      return
+    }
   } catch (err) {
     console.error('Error in scrapeAll:', err)
-    if (res) res.status(500).json({ message: 'Error occurred during scraping' })
+    if (res) {
+      res.status(500).json({ message: 'Error occurred during scraping' })
+      return
+    }
+    throw err
   }
 }
 
-scrapeRouter.get('/', async (_, res) => {
-  await scrapeAll(res)
-})
+scrapeRouter.get(
+  '/',
+  async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      await scrapeAll(res)
+    } catch (e) {
+      next(e)
+    }
+  },
+)
 
 cron.schedule('05,35 */1 * * *', async () => {
   await scrapeAll()

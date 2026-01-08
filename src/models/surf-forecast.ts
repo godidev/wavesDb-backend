@@ -20,12 +20,13 @@ const WindSchema = new Schema(
 
 export const SurfForecastSchema = new Schema({
   date: { type: Date, required: true },
+  spot: { type: String, required: true },
   validSwells: { type: [SwellSchema], required: true, default: [] },
   wind: { type: WindSchema, required: true },
   energy: { type: Number, required: true },
 })
 
-SurfForecastSchema.index({ date: 1 }, { unique: true })
+SurfForecastSchema.index({ spot: 1, date: -1 }, { unique: true })
 
 export type SurfForecastDoc = InferSchemaType<typeof SurfForecastSchema>
 
@@ -33,14 +34,16 @@ const SurfForecast = model<SurfForecastDoc>('SurfForecast', SurfForecastSchema)
 
 export class SurfForecastModel {
   static async getSurfForecasts({
+    spot,
     page,
     limit,
   }: {
+    spot: string
     page: number
     limit: number
   }) {
     try {
-      const forecast: WaveData[] = await SurfForecast.find()
+      const forecast: WaveData[] = await SurfForecast.find({ spot })
         .sort({ date: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
@@ -51,33 +54,25 @@ export class SurfForecastModel {
     }
   }
 
-  static async getLastForecast() {
-    try {
-      const lastData: WaveData | null = await SurfForecast.findOne()
-        .sort({ date: -1 })
-        .select('-_id -__v')
-      return lastData
-    } catch {
-      throw new Error("Couldn't get last forecast data from the database")
-    }
-  }
-
   static async addMultipleForecast(forecast: WaveData[]) {
     try {
-      forecast.forEach(async (data) => {
-        const { date } = data
-        await SurfForecast.findOneAndUpdate(
-          {
-            date,
-          },
-          data,
-          {
-            upsert: true,
-          },
+      if (!forecast.length) return
+
+      const ops = forecast.map((data) => ({
+        updateOne: {
+          filter: { spot: data.spot, date: data.date },
+          update: { $set: data },
+          upsert: true,
+        },
+      }))
+
+      await SurfForecast.bulkWrite(ops, { ordered: false })
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new Error(
+          `Couldn't add multiple forecasts to the database: ${err.message}`,
         )
-      })
-    } catch {
-      throw new Error("Couldn't add multiple forecasts to the database")
+      }
     }
   }
 

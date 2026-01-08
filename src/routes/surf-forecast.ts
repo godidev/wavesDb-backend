@@ -3,5 +3,5 @@ import { SurfForecastController } from '../controllers/surf-forecast'
 
 export const SurfForecastRouter = Router()
 
-SurfForecastRouter.get('/', SurfForecastController.getSurfForecasts)
+SurfForecastRouter.get('/:spot', SurfForecastController.getSurfForecasts)
 SurfForecastRouter.delete('/', SurfForecastController.deleteSurfForecast)
