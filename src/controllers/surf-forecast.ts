@@ -1,6 +1,4 @@
 import { SurfForecastModel } from '../models/surf-forecast'
-import { WaveData } from '../types'
-import { updateSurfForecast } from '../utils/surfForecast'
 import { Request, Response } from 'express'
 
 export class SurfForecastController {
