@@ -1,6 +1,6 @@
 import { BuoyFetch, DbBuoyRecord, formatedBuoys, id } from '../types.js'
 import { BuoyModel } from '../models/buoy'
-import buoys from '../basque-country-buoys.json'
+import buoys from '../data/buoys/basque-country-buoys.json'
 
 interface buoyData {
   station: string
