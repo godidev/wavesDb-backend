@@ -51,17 +51,6 @@ export class SurfForecastModel {
     }
   }
 
-  static async getLastForecast() {
-    try {
-      const lastData: WaveData | null = await SurfForecast.findOne()
-        .sort({ date: -1 })
-        .select('-_id -__v')
-      return lastData
-    } catch {
-      throw new Error("Couldn't get last forecast data from the database")
-    }
-  }
-
   static async addMultipleForecast(forecast: WaveData[]) {
     try {
       forecast.forEach(async (data) => {
