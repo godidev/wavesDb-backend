@@ -236,7 +236,7 @@ describe('API Routes', () => {
     })
   })
 
-  describe('GET /surf-forecast', () => {
+  describe('GET /surf-forecast/test-spot', () => {
     it('should return surf forecasts', async () => {
       const mockForecasts: WaveData[] = [
         {
@@ -250,7 +250,7 @@ describe('API Routes', () => {
       mockGetSurfForecasts.mockResolvedValue(mockForecasts)
 
       const response = await request(app)
-        .get('/surf-forecast')
+        .get('/surf-forecast/test-spot')
         .query({ page: 1, limit: 50 })
 
       expect(response.status).toBe(200)
@@ -264,6 +264,7 @@ describe('API Routes', () => {
         },
       ])
       expect(mockGetSurfForecasts).toHaveBeenCalledWith({
+        spot: 'test-spot',
         page: 1,
         limit: 50,
       })
@@ -273,9 +274,10 @@ describe('API Routes', () => {
       const mockForecasts: WaveData[] = []
       mockGetSurfForecasts.mockResolvedValue(mockForecasts)
 
-      await request(app).get('/surf-forecast')
+      await request(app).get('/surf-forecast/test-spot')
 
       expect(mockGetSurfForecasts).toHaveBeenCalledWith({
+        spot: 'test-spot',
         page: 1,
         limit: 50,
       })
@@ -284,7 +286,7 @@ describe('API Routes', () => {
     it('should handle errors', async () => {
       mockGetSurfForecasts.mockRejectedValue(new Error('DB error'))
 
-      const response = await request(app).get('/surf-forecast')
+      const response = await request(app).get('/surf-forecast/test-spot')
 
       expect(response.status).toBe(500)
       expect(response.body).toHaveProperty('error')

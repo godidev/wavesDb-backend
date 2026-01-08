@@ -34,14 +34,16 @@ const SurfForecast = model<SurfForecastDoc>('SurfForecast', SurfForecastSchema)
 
 export class SurfForecastModel {
   static async getSurfForecasts({
+    spot,
     page,
     limit,
   }: {
+    spot: string
     page: number
     limit: number
   }) {
     try {
-      const forecast: WaveData[] = await SurfForecast.find()
+      const forecast: WaveData[] = await SurfForecast.find({ spot })
         .sort({ date: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
