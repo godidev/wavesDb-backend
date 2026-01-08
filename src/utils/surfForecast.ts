@@ -2,8 +2,9 @@ import { DateTime } from 'luxon'
 import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '../models/surf-forecast'
 import { DataSwellState, WaveData } from '../types'
+import spots from '../SurfForecastData.json'
 
-async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
+async function fetchSurfForecast(beach: string): Promise<string> {
   const url = `https://es.surf-forecast.com/breaks/${beach}/forecasts/data?parts=basic&period_types=h&forecast_duration=48h`
 
   const options = {
@@ -36,7 +37,7 @@ async function fetchSurfForecast(beach = 'Sopelana'): Promise<string> {
   }
 }
 
-export async function parseForecast(html: string) {
+export async function parseForecast(spot: string, html: string) {
   const now = new Date()
   let month = now.getMonth()
   let year = now.getFullYear()
@@ -92,6 +93,7 @@ export async function parseForecast(html: string) {
 
     data.push({
       date: finalDate,
+      spot,
       validSwells,
       wind: {
         speed: invert(speed),
@@ -117,18 +119,28 @@ export function getDate(date: string): number[] {
   return parsedTime === 12 ? [parsedDay, 12] : [parsedDay, parsedTime + 12]
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const rand = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1)) + min
+
 export async function updateSurfForecast() {
-  try {
-    const html = await fetchSurfForecast()
-    const newHtml = `<html><body><table>${html}</table></body></html>`
-    const parsedData = await parseForecast(newHtml)
-    await SurfForecastModel.addMultipleForecast(parsedData)
-    console.log('updated surf forecast')
-  } catch {
-    console.log('Error updating surf forecast')
+  const spotNames = spots.flatMap((s) => s.name)
+
+  for (const spot of spotNames) {
+    await sleep(rand(2500, 8000))
+    try {
+      const html = await fetchSurfForecast(spot)
+      const newHtml = `<html><body><table>${html}</table></body></html>`
+      const parsedData = await parseForecast(spot, newHtml)
+      await SurfForecastModel.addMultipleForecast(parsedData)
+      console.log('updated surf forecast of', spot)
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log('Error updating surf forecast of', spot, err.message)
+      }
+    }
   }
 }
-
 function madridToUtcDate(
   year: number,
   month0: number,

@@ -23,8 +23,8 @@ describe('parseForecast', () => {
         </tr>
       </table>
     `
-
-    const result = await parseForecast(mockHtml)
+    const beachSpot = 'test-spot'
+    const result = await parseForecast(beachSpot, mockHtml)
 
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({

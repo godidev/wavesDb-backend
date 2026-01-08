@@ -20,12 +20,13 @@ const WindSchema = new Schema(
 
 export const SurfForecastSchema = new Schema({
   date: { type: Date, required: true },
+  spot: { type: String, required: true },
   validSwells: { type: [SwellSchema], required: true, default: [] },
   wind: { type: WindSchema, required: true },
   energy: { type: Number, required: true },
 })
 
-SurfForecastSchema.index({ date: 1 }, { unique: true })
+SurfForecastSchema.index({ spot: 1, date: -1 }, { unique: true })
 
 export type SurfForecastDoc = InferSchemaType<typeof SurfForecastSchema>
 
@@ -53,20 +54,23 @@ export class SurfForecastModel {
 
   static async addMultipleForecast(forecast: WaveData[]) {
     try {
-      forecast.forEach(async (data) => {
-        const { date } = data
-        await SurfForecast.findOneAndUpdate(
-          {
-            date,
-          },
-          data,
-          {
-            upsert: true,
-          },
+      if (!forecast.length) return
+
+      const ops = forecast.map((data) => ({
+        updateOne: {
+          filter: { spot: data.spot, date: data.date },
+          update: { $set: data },
+          upsert: true,
+        },
+      }))
+
+      await SurfForecast.bulkWrite(ops, { ordered: false })
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new Error(
+          `Couldn't add multiple forecasts to the database: ${err.message}`,
         )
-      })
-    } catch {
-      throw new Error("Couldn't add multiple forecasts to the database")
+      }
     }
   }
 

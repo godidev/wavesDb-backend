@@ -241,6 +241,7 @@ describe('API Routes', () => {
       const mockForecasts: WaveData[] = [
         {
           date: new Date('2026-01-07T18:18:54.583Z'),
+          spot: 'test-spot',
           validSwells: [],
           wind: { speed: 10, angle: 180 },
           energy: 500,
@@ -256,6 +257,7 @@ describe('API Routes', () => {
       expect(response.body).toEqual([
         {
           date: '2026-01-07T18:18:54.583Z',
+          spot: 'test-spot',
           validSwells: [],
           wind: { speed: 10, angle: 180 },
           energy: 500,
