@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '../models/surf-forecast'
 import { DataSwellState, WaveData } from '../types'
-import spots from '../SurfForecastData.json'
+import spots from '../basque-country-surf-spots.json'
 
 async function fetchSurfForecast(beach: string): Promise<string> {
   const url = `https://es.surf-forecast.com/breaks/${beach}/forecasts/data?parts=basic&period_types=h&forecast_duration=48h`
@@ -124,9 +124,7 @@ const rand = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min
 
 export async function updateSurfForecast() {
-  const spotNames = spots.flatMap((s) => s.name)
-
-  for (const spot of spotNames) {
+  for (const spot of spots) {
     await sleep(rand(2500, 8000))
     try {
       const html = await fetchSurfForecast(spot)
