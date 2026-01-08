@@ -33,17 +33,6 @@ export class SurfForecastController {
     }
   }
 
-  static async fetchSurfForecast(req: Request, res: Response) {
-    try {
-      const retrieved = (await updateSurfForecast()) as unknown as WaveData[]
-      await SurfForecastModel.addMultipleForecast(retrieved)
-      res.json({ message: 'Forecast data updated successfully!' })
-    } catch (err) {
-      console.error(err)
-      res.status(500).json({ error: 'Internal server error' })
-    }
-  }
-
   static async deleteSurfForecast(req: Request, res: Response) {
     try {
       await SurfForecastModel.deleteSurfForecast()
