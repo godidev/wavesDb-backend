@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose'
+import { InferSchemaType, Schema, model } from 'mongoose'
 import { formatedBuoys } from '../types'
 
 const buoySchema = new Schema({
@@ -10,7 +10,11 @@ const buoySchema = new Schema({
   peakDirection: { type: Number, required: false },
 })
 
-const Buoy = model('Buoy', buoySchema)
+buoySchema.index({ station: 1, date: -1 }, { unique: true })
+
+export type BuoyDoc = InferSchemaType<typeof buoySchema>
+
+const Buoy = model<BuoyDoc>('Buoy', buoySchema)
 
 export interface BuoyParams {
   limit: number
