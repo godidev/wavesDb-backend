@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose'
-import { station } from '../types'
+import { Station } from '../types/station.types'
 
 const stationSchema = new Schema({
   name: String,
@@ -11,7 +11,7 @@ const Station = model('Station', stationSchema)
 export class StationModel {
   static async getStations() {
     try {
-      const stations: station[] = await Station.find({}).select('-_id -__v')
+      const stations: Station[] = await Station.find({}).select('-_id -__v')
       return stations
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -42,9 +42,9 @@ export class StationModel {
     }
   }
 
-  static async addStation(station: station) {
+  static async addStation(stationData: Station) {
     try {
-      const data = await Station.insertMany(station)
+      const data = await Station.insertMany(stationData)
       return data
     } catch (err) {
       if (err instanceof Error) {

@@ -1,5 +1,5 @@
 import { logger } from '../logger'
-import { SurfForecastModel } from '../models/surf-forecast'
+import { SurfForecastModel } from '../models/surf-forecast.model'
 import { Request, Response } from 'express'
 
 export class SurfForecastController {

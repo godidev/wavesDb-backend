@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest'
 import request from 'supertest'
 import app from '../src/index'
-import { BuoyModel } from '../src/models/buoy'
-import { StationModel } from '../src/models/station'
-import { SurfForecastModel } from '../src/models/surf-forecast'
-import { WaveData } from '../src/types'
+import { BuoyModel } from '../src/models/buoy.model'
+import { StationModel } from '../src/models/station.model'
+import { SurfForecastModel } from '../src/models/surf-forecast.model'
+import { WaveData } from '../src/types/surf-forecast.types'
 
 // Set test environment variables
 process.env.MONGO_URL = 'mongodb://localhost:27017/test'
@@ -21,7 +21,7 @@ type FormatedBuoy = {
 }
 
 // Mock the models
-vi.mock('../src/models/buoy', () => ({
+vi.mock('../src/models/buoy.model', () => ({
   BuoyModel: {
     getBuoys: vi.fn(),
     deleteBuoys: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('../src/models/buoy', () => ({
   },
 }))
 
-vi.mock('../src/models/station', () => ({
+vi.mock('../src/models/station.model', () => ({
   StationModel: {
     getStations: vi.fn(),
     addStation: vi.fn(),
@@ -37,7 +37,7 @@ vi.mock('../src/models/station', () => ({
   },
 }))
 
-vi.mock('../src/models/surf-forecast', () => ({
+vi.mock('../src/models/surf-forecast.model', () => ({
   SurfForecastModel: {
     getSurfForecasts: vi.fn(),
     deleteSurfForecast: vi.fn(),
@@ -46,11 +46,11 @@ vi.mock('../src/models/surf-forecast', () => ({
 }))
 
 // Mock the utils
-vi.mock('../src/utils/buoys', () => ({
+vi.mock('../src/utils/buoy.service', () => ({
   scheduledUpdate: vi.fn(),
 }))
 
-vi.mock('../src/utils/surfForecast', () => ({
+vi.mock('../src/utils/surf-forecast.service', () => ({
   updateSurfForecast: vi.fn(),
 }))
 
@@ -84,8 +84,8 @@ const mockDeleteSurfForecast =
   >
 
 // Import and type the utils mocks
-const { scheduledUpdate } = await import('../src/utils/buoys')
-const { updateSurfForecast } = await import('../src/utils/surfForecast')
+const { scheduledUpdate } = await import('../src/utils/buoy.service')
+const { updateSurfForecast } = await import('../src/utils/surf-forecast.service')
 const mockScheduledUpdate = scheduledUpdate as MockedFunction<
   typeof scheduledUpdate
 >

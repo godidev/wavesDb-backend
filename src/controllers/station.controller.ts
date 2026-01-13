@@ -1,5 +1,5 @@
 import { logger } from '../logger'
-import { StationModel } from '../models/station'
+import { StationModel } from '../models/station.model'
 import { Request, Response } from 'express'
 
 export class stationController {
