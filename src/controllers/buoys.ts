@@ -7,7 +7,6 @@ export class BuoyController {
     try {
       const limit = parseInt(req.query.limit as string) || 6
       const buoy = (req.query.buoy as string) || '7113'
-      console.log('limit:', limit, 'buoy:', buoy)
       const buoys = await BuoyModel.getBuoys({ limit, buoy })
       res.json(buoys)
     } catch (err) {

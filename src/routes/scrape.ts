@@ -2,6 +2,7 @@ import Router, { NextFunction, Response, Request } from 'express'
 import cron from 'node-cron'
 import { scheduledUpdate as scheduledUpdateBuoys } from '../utils/buoys'
 import { updateSurfForecast } from '../utils/surfForecast'
+import { logger } from '../logger'
 
 type TaskFunction = () => Promise<void>
 
@@ -11,14 +12,14 @@ const executeTask = async (
   taskFn: TaskFunction,
   taskName: string,
 ): Promise<void> => {
-  console.log(`Started ${taskName} at ${new Date().toISOString()}`)
+  logger.info(`Started ${taskName} at ${new Date().toISOString()}`)
   try {
     await taskFn()
-    console.log(
+    logger.info(
       `${taskName} completed successfully at ${new Date().toISOString()}`,
     )
   } catch (err) {
-    console.error(`Error in ${taskName} at ${new Date().toISOString()}:`, err)
+    logger.error(`Error in ${taskName} at ${new Date().toISOString()}: ${err}`)
   }
 }
 
@@ -32,7 +33,7 @@ const scrapeAll = async (res?: Response) => {
       return
     }
   } catch (err) {
-    console.error('Error in scrapeAll:', err)
+    logger.error(`Error during scraping all data: ${err}`)
     if (res) {
       res.status(500).json({ message: 'Error occurred during scraping' })
       return

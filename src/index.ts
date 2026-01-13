@@ -5,10 +5,12 @@ import { buoysRouter } from './routes/buoys'
 import { scrapeRouter } from './routes/scrape'
 import { SurfForecastRouter } from './routes/surf-forecast'
 import { stationsRouter } from './routes/stations'
+import { logger } from './logger'
+
 const { PORT = 3000, MONGO_URL, NODE_ENV } = process.env
 
 if (!MONGO_URL && NODE_ENV !== 'test') {
-  console.error(
+  logger.error(
     'MONGO_URL is not defined. Please check your environment variables.',
   )
   process.exit(1)
@@ -30,10 +32,10 @@ if (NODE_ENV !== 'test') {
   mongoose
     .connect(MONGO_URL!)
     .then(() => {
-      console.log('Connected to database')
+      logger.info('Connected to database')
       app.listen(PORT, () => {
-        console.log(`App listening on port ${PORT}`)
+        logger.info({ port: PORT }, 'App listening')
       })
     })
-    .catch((err) => console.error(err))
+    .catch((err) => logger.error({ err }, 'Database connection failed'))
 }

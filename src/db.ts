@@ -1,4 +1,5 @@
 import mongoose, { Connection } from 'mongoose'
+import { logger } from './logger'
 
 export const connectToDatabase = async (
   mongoUrl: string,
@@ -12,7 +13,7 @@ export const connectToDatabase = async (
 
     return connection.connection
   } catch (err) {
-    console.error('Error connecting to MongoDB:', err)
+    logger.error({ err }, 'Error connecting to MongoDB')
     throw err
   }
 }

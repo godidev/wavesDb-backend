@@ -26,6 +26,7 @@ export default [
         'warn',
         { argsIgnorePattern: '^_' },
       ],
+      'no-console': 'error',
     },
   },
 
