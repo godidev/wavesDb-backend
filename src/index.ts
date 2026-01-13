@@ -1,10 +1,10 @@
 import express, { json } from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
-import { buoysRouter } from './routes/buoys'
-import { scrapeRouter } from './routes/scrape'
-import { SurfForecastRouter } from './routes/surf-forecast'
-import { stationsRouter } from './routes/stations'
+import { buoysRouter } from './routes/buoy.routes'
+import { scrapeRouter } from './routes/scrape.routes'
+import { SurfForecastRouter } from './routes/surf-forecast.routes'
+import { stationsRouter } from './routes/station.routes'
 import { logger } from './logger'
 
 const { PORT = 3000, MONGO_URL, NODE_ENV } = process.env

@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '../models/surf-forecast.model'
-import { DataSwellState, WaveData } from '../types'
+import { DataSwellState, WaveData } from '../types/surf-forecast.types'
 import spots from '../data/surf-forecast/basque-country-surf-spots.json'
 import { logger } from '../logger'
 

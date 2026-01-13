@@ -1,5 +1,5 @@
-import { BuoyModel } from '../models/buoy'
-import { scheduledUpdate } from '../utils/buoys'
+import { BuoyModel } from '../models/buoy.model'
+import { scheduledUpdate } from '../utils/buoy.service'
 import { Request, Response } from 'express'
 
 export class BuoyController {

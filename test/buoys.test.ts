@@ -4,8 +4,8 @@ import {
   organizeData,
   formatDate,
   updateBuoysData,
-} from '../src/utils/buoys'
-import { BuoyFetch, id } from '../src/types'
+} from '../src/utils/buoy.service'
+import { BuoyFetch, ID } from '../src/types/buoy.types'
 
 describe('formatValue', () => {
   it('divides by 100 for ids 34, 13, 32', () => {
@@ -20,7 +20,7 @@ describe('formatValue', () => {
   })
 
   it('returns 0 for other ids', () => {
-    expect(formatValue(99 as unknown as id, '100')).toBe(0)
+    expect(formatValue(99 as unknown as ID, '100')).toBe(0)
   })
 })
 

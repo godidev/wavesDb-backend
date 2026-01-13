@@ -1,5 +1,5 @@
 import { InferSchemaType, Schema, model } from 'mongoose'
-import { formatedBuoys } from '../types'
+import { FormattedBuoys } from '../types/buoy.types'
 
 const buoySchema = new Schema({
   station: { type: String, required: true },
@@ -31,7 +31,7 @@ function isDuplicateKeyError(err: unknown): err is { code: number } {
 export class BuoyModel {
   static async getBuoys({ limit, buoy }: BuoyParams) {
     try {
-      const buoys: formatedBuoys[] = await Buoy.find({ station: buoy })
+      const buoys: FormattedBuoys[] = await Buoy.find({ station: buoy })
         .sort({ date: -1 })
         .limit(limit)
         .select('-_id -__v')
@@ -81,7 +81,7 @@ export class BuoyModel {
     }
   }
 
-  static async addMultipleBuoys(buoys: formatedBuoys[]) {
+  static async addMultipleBuoys(buoys: FormattedBuoys[]) {
     if (!buoys.length) return
 
     const docs = buoys.map(

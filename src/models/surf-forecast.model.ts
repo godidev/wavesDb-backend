@@ -1,5 +1,5 @@
 import { Schema, model, InferSchemaType } from 'mongoose'
-import { WaveData } from '../types'
+import { WaveData } from '../types/surf-forecast.types'
 
 const SwellSchema = new Schema(
   {

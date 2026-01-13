@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getDate, parseForecast } from '../src/utils/surfForecast'
+import { getDate, parseForecast } from '../src/utils/surf-forecast.service'
 
 describe('getDate', () => {
   it('parses AM correctly', () => {
