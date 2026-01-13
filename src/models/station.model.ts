@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose'
-import { Station } from '../types/station.types'
+import { Station } from '@myTypes/station.types'
 
 const stationSchema = new Schema({
   name: String,

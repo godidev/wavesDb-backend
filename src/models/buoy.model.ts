@@ -1,5 +1,5 @@
 import { InferSchemaType, Schema, model } from 'mongoose'
-import { FormattedBuoys } from '../types/buoy.types'
+import { FormattedBuoys } from '@myTypes/buoy.types'
 
 const buoySchema = new Schema({
   station: { type: String, required: true },

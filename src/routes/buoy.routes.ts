@@ -1,5 +1,5 @@
 import Router from 'express'
-import { BuoyController } from '../controllers/buoy.controller'
+import { BuoyController } from '@controllers/buoy.controller'
 
 export const buoysRouter = Router()
 

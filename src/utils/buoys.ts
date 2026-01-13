@@ -1,7 +1,7 @@
-import { BuoyFetch, DbBuoyRecord, formatedBuoys, id } from '../types.js'
-import { BuoyModel } from '../models/buoy.model'
-import buoys from '../data/buoys/basque-country-buoys.json'
-import { logger } from '../logger.js'
+import { BuoyFetch, DbBuoyRecord, FormattedBuoys } from '@myTypes/buoy.types'
+import { BuoyModel } from '@models/buoy.model'
+import buoys from '@data/buoys/basque-country-buoys.json'
+import { logger } from '@logger'
 
 interface buoyData {
   station: string
@@ -37,7 +37,7 @@ async function fetchBuoys({
   }
 }
 
-export function formatValue(id: id, value: string): number {
+export function formatValue(id: number, value: string): number {
   switch (id) {
     case 34:
     case 13:
@@ -92,7 +92,7 @@ export const formatDate = (date: string): number => {
 export async function updateBuoysData({
   station,
   body,
-}: buoyData): Promise<formatedBuoys[]> {
+}: buoyData): Promise<FormattedBuoys[]> {
   const data = await fetchBuoys({ station, body })
 
   if (!data) {
