@@ -1,6 +1,7 @@
 import { BuoyFetch, DbBuoyRecord, formatedBuoys, id } from '../types.js'
 import { BuoyModel } from '../models/buoy'
 import buoys from '../data/buoys/basque-country-buoys.json'
+import { logger } from '../logger.js'
 
 interface buoyData {
   station: string
@@ -30,7 +31,9 @@ async function fetchBuoys({
     const res = await response.json()
     return res as BuoyFetch[]
   } catch (err) {
-    return console.error(err)
+    return logger.error(
+      `Error fetching buoy data for station ${station}: ${err}`,
+    )
   }
 }
 
@@ -103,12 +106,12 @@ export async function updateBuoysData({
 export async function scheduledUpdate() {
   try {
     buoys.forEach(async ({ station, body, name }) => {
-      console.log(`Fetching new Buoys for ${name}`)
+      logger.info(`Fetching new Buoys for ${name}`)
       const newBuoys = await updateBuoysData({ station, body })
       await BuoyModel.addMultipleBuoys(newBuoys)
     })
-    console.log('uploaded new Buoys')
+    logger.info('uploaded new Buoys')
   } catch (err) {
-    console.error(err)
+    logger.error(`Error during scheduled buoy update: ${err}`)
   }
 }

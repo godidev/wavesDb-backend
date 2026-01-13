@@ -1,3 +1,4 @@
+import { logger } from '../logger'
 import { SurfForecastModel } from '../models/surf-forecast'
 import { Request, Response } from 'express'
 
@@ -26,7 +27,7 @@ export class SurfForecastController {
       }
       res.json(forecasts)
     } catch (err) {
-      console.error(err)
+      logger.error(`Error getting surf forecasts: ${err}`)
       res.status(500).json({ error: 'Internal server error' })
     }
   }
@@ -36,7 +37,7 @@ export class SurfForecastController {
       await SurfForecastModel.deleteSurfForecast()
       res.status(200).send('Surf Forecast data deleted successfully!')
     } catch (err) {
-      console.error(err)
+      logger.error(`Error deleting surf forecasts: ${err}`)
       res.status(500).json({ error: 'Internal server error' })
     }
   }

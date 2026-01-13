@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '../models/surf-forecast'
 import { DataSwellState, WaveData } from '../types'
 import spots from '../data/surf-forecast/basque-country-surf-spots.json'
+import { logger } from '../logger'
 
 async function fetchSurfForecast(beach: string): Promise<string> {
   const url = `https://es.surf-forecast.com/breaks/${beach}/forecasts/data?parts=basic&period_types=h&forecast_duration=48h`
@@ -131,10 +132,10 @@ export async function updateSurfForecast() {
       const newHtml = `<html><body><table>${html}</table></body></html>`
       const parsedData = await parseForecast(spot, newHtml)
       await SurfForecastModel.addMultipleForecast(parsedData)
-      console.log('updated surf forecast of', spot)
+      logger.info({ spot }, 'Updated surf forecast')
     } catch (err) {
       if (err instanceof Error) {
-        console.log('Error updating surf forecast of', spot, err.message)
+        logger.error({ spot, err: err.message }, 'Error updating surf forecast')
       }
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '../logger'
 import { StationModel } from '../models/station'
 import { Request, Response } from 'express'
 
@@ -14,7 +15,7 @@ export class stationController {
   static async addNewStation(req: Request, res: Response) {
     try {
       const { name, station } = req.body
-      console.log({ name, station })
+      logger.info(`Adding new station: ${name} with id: ${station}`)
       await StationModel.addStation({ name, station })
       res.status(200).send('Station data updated successfully!')
     } catch (err) {
