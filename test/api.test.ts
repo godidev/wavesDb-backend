@@ -85,7 +85,9 @@ const mockDeleteSurfForecast =
 
 // Import and type the utils mocks
 const { scheduledUpdate } = await import('../src/utils/buoy.service')
-const { updateSurfForecast } = await import('../src/utils/surf-forecast.service')
+const { updateSurfForecast } = await import(
+  '../src/utils/surf-forecast.service'
+)
 const mockScheduledUpdate = scheduledUpdate as MockedFunction<
   typeof scheduledUpdate
 >
