@@ -1,5 +1,5 @@
 import Router from 'express'
-import { SurfForecastController } from '../controllers/surf-forecast.controller'
+import { SurfForecastController } from '@controllers/surf-forecast.controller'
 
 export const SurfForecastRouter = Router()
 

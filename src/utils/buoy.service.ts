@@ -3,10 +3,10 @@ import {
   DbBuoyRecord,
   FormattedBuoys,
   ID,
-} from '../types/buoy.types'
-import { BuoyModel } from '../models/buoy.model'
-import buoys from '../data/buoys/basque-country-buoys.json'
-import { logger } from '../logger.js'
+} from '@myTypes/buoy.types'
+import { BuoyModel } from '@models/buoy.model'
+import buoys from '@data/buoys/basque-country-buoys.json'
+import { logger } from '@logger'
 
 interface buoyData {
   station: string

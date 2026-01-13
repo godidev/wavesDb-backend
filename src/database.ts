@@ -1,5 +1,5 @@
 import mongoose, { Connection } from 'mongoose'
-import { logger } from './logger'
+import { logger } from '@logger'
 
 export const connectToDatabase = async (
   mongoUrl: string,

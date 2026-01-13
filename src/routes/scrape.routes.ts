@@ -1,8 +1,8 @@
 import Router, { NextFunction, Response, Request } from 'express'
 import cron from 'node-cron'
-import { scheduledUpdate as scheduledUpdateBuoys } from '../utils/buoy.service'
-import { updateSurfForecast } from '../utils/surf-forecast.service'
-import { logger } from '../logger'
+import { scheduledUpdate as scheduledUpdateBuoys } from '@utils/buoy.service'
+import { updateSurfForecast } from '@utils/surf-forecast.service'
+import { logger } from '@logger'
 
 type TaskFunction = () => Promise<void>
 

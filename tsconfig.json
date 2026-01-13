@@ -9,7 +9,18 @@
     "rootDir": "./src",
     "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@controllers/*": ["controllers/*"],
+      "@models/*": ["models/*"],
+      "@routes/*": ["routes/*"],
+      "@utils/*": ["utils/*"],
+      "@myTypes/*": ["types/*"],
+      "@middleware/*": ["middleware/*"],
+      "@data/*": ["data/*"],
+      "@logger": ["logger"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
