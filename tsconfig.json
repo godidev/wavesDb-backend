@@ -19,7 +19,8 @@
       "@myTypes/*": ["types/*"],
       "@middleware/*": ["middleware/*"],
       "@data/*": ["data/*"],
-      "@logger": ["logger"]
+      "@logger": ["logger"],
+      "@config/*": ["config/*"]
     }
   },
   "include": ["src"],
