@@ -20,7 +20,9 @@
       "@middleware/*": ["middleware/*"],
       "@data/*": ["data/*"],
       "@logger": ["logger"],
-      "@config/*": ["config/*"]
+      "@config/*": ["config/*"],
+      "@services/*": ["services/*"],
+      "@schemas/*": ["schemas/*"]
     }
   },
   "include": ["src"],

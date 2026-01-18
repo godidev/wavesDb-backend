@@ -4,23 +4,23 @@ import {
   FormattedBuoys,
   ID,
 } from '@myTypes/buoy.types'
-import { BuoyModel } from '@models/buoy.model'
-import buoys from '@data/buoys/basque-country-buoys.json'
+import { BuoyDataModel } from '@models/buoyData.model'
 import { logger } from '@logger'
+import { BuoyInfoModel } from '@models/buoyInfo.model'
 
 interface buoyData {
-  station: string
-  body: string[] | string
+  buoyId: string
+  body: string
   name?: string
 }
 
 async function fetchBuoys({
-  station,
+  buoyId,
   body,
 }: buoyData): Promise<BuoyFetch[] | void> {
   try {
     const response = await fetch(
-      `https://portus.puertos.es/portussvr/api/RTData/station/${station}?locale=es`,
+      `https://portus.puertos.es/portussvr/api/RTData/station/${buoyId}?locale=es`,
       {
         headers: {
           accept: 'application/json, text/plain, */*',
@@ -37,7 +37,7 @@ async function fetchBuoys({
     return res as BuoyFetch[]
   } catch (err) {
     return logger.error(
-      `Error fetching buoy data for station ${station}: ${err}`,
+      `Error fetching buoy data for station ${buoyId}: ${err}`,
     )
   }
 }
@@ -95,28 +95,50 @@ export const formatDate = (date: string): number => {
 }
 
 export async function updateBuoysData({
-  station,
+  buoyId,
   body,
 }: buoyData): Promise<FormattedBuoys[]> {
-  const data = await fetchBuoys({ station, body })
+  const data = await fetchBuoys({ buoyId, body })
 
   if (!data) {
     return []
   }
   const formatedData = organizeData(data)
 
-  return formatedData.map((item) => ({ station, ...item }))
+  return formatedData.map((item) => ({ buoyId, ...item }))
 }
 
 export async function scheduledUpdate() {
   try {
-    buoys.forEach(async ({ station, body, name }) => {
-      logger.info(`Fetching new Buoys for ${name}`)
-      const newBuoys = await updateBuoysData({ station, body })
-      await BuoyModel.addMultipleBuoys(newBuoys)
-    })
-    logger.info('uploaded new Buoys')
+    const buoys = await BuoyInfoModel.getAllBuoysInfo()
+
+    if (!Array.isArray(buoys) || buoys.length === 0) {
+      logger.warn('No buoys found to update')
+      return
+    }
+
+    for (const { buoyId, body, buoyName } of buoys) {
+      try {
+        logger.info(`Fetching new Buoys for ${buoyName} (${buoyId})`)
+
+        if (!body) {
+          logger.warn(`No body found for buoy ${buoyName} (${buoyId})`)
+          continue
+        }
+
+        const newBuoys = await updateBuoysData({ buoyId, body })
+        await BuoyDataModel.addMultipleBuoys(newBuoys)
+
+        logger.info(`Successfully updated buoy ${buoyId}`)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        logger.error(`Failed to update buoy ${buoyId}: ${message}`)
+      }
+    }
+
+    logger.info('Scheduled buoy update completed')
   } catch (err) {
-    logger.error(`Error during scheduled buoy update: ${err}`)
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error(`Error during scheduled buoy update: ${message}`)
   }
 }
