@@ -21,7 +21,7 @@
   "dependencies": {
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
-    "express": "^4.21.1",
+    "express": "^4.22.1",
     "luxon": "^3.7.2",
     "mongoose": "^8.8.3",
     "node-cron": "^3.0.3",
@@ -34,7 +34,7 @@
     "@types/express": "^5.0.0",
     "@types/luxon": "^3.7.1",
     "@types/mongoose": "^5.11.96",
-    "@types/node": "^22.10.1",
+    "@types/node": "^25.0.9",
     "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.3",
     "eslint": "^9.16.0",
