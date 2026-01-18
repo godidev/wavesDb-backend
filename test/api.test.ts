@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest'
 import request from 'supertest'
 import app from '../src/index'
-import { BuoyModel } from '../src/models/buoy.model'
+import { BuoyDataModel } from '../src/models/buoyData.model'
+import { BuoyInfoModel } from '../src/models/buoyInfo.model'
 import { StationModel } from '../src/models/station.model'
 import { SurfForecastModel } from '../src/models/surf-forecast.model'
 import { WaveData } from '../src/types/surf-forecast.types'
@@ -10,22 +11,20 @@ import { WaveData } from '../src/types/surf-forecast.types'
 process.env.MONGO_URL = 'mongodb://localhost:27017/test'
 process.env.NODE_ENV = 'test'
 
-// Define types for test mocks
-type FormatedBuoy = {
-  station: string
-  date: number
-  period: number
-  height: number
-  avgDirection: number
-  peakDirection?: number
-}
-
 // Mock the models
-vi.mock('../src/models/buoy.model', () => ({
-  BuoyModel: {
+vi.mock('../src/models/buoyData.model', () => ({
+  BuoyDataModel: {
     getBuoys: vi.fn(),
-    deleteBuoys: vi.fn(),
-    addMultipleBuoys: vi.fn(),
+    deleteBuoyData: vi.fn(),
+  },
+}))
+
+vi.mock('../src/models/buoyInfo.model', () => ({
+  BuoyInfoModel: {
+    getAllBuoysInfo: vi.fn(),
+    getBuoysInfoById: vi.fn(),
+    addBuoyInfo: vi.fn(),
+    deleteBuoysInfo: vi.fn(),
   },
 }))
 
@@ -54,17 +53,38 @@ vi.mock('../src/utils/surf-forecast.service', () => ({
   updateSurfForecast: vi.fn(),
 }))
 
+// Mock scheduler service to prevent cron from starting in tests
+vi.mock('../src/services/scheduler.service', () => ({
+  initializeScheduler: vi.fn(),
+}))
+
 // Mock console methods to suppress logs in tests
 vi.spyOn(console, 'log').mockImplementation(() => {})
 vi.spyOn(console, 'error').mockImplementation(() => {})
 
-// Get typed mocks
-const mockGetBuoys = BuoyModel.getBuoys as MockedFunction<
-  typeof BuoyModel.getBuoys
+// Get typed mocks for BuoyDataModel
+const mockGetBuoys = BuoyDataModel.getBuoys as MockedFunction<
+  typeof BuoyDataModel.getBuoys
 >
-const mockDeleteBuoys = BuoyModel.deleteBuoys as MockedFunction<
-  typeof BuoyModel.deleteBuoys
+const mockDeleteBuoyData = BuoyDataModel.deleteBuoyData as MockedFunction<
+  typeof BuoyDataModel.deleteBuoyData
 >
+
+// Get typed mocks for BuoyInfoModel
+const mockGetAllBuoysInfo = BuoyInfoModel.getAllBuoysInfo as MockedFunction<
+  typeof BuoyInfoModel.getAllBuoysInfo
+>
+const mockGetBuoysInfoById = BuoyInfoModel.getBuoysInfoById as MockedFunction<
+  typeof BuoyInfoModel.getBuoysInfoById
+>
+const mockAddBuoyInfo = BuoyInfoModel.addBuoyInfo as MockedFunction<
+  typeof BuoyInfoModel.addBuoyInfo
+>
+const mockDeleteBuoysInfo = BuoyInfoModel.deleteBuoysInfo as MockedFunction<
+  typeof BuoyInfoModel.deleteBuoysInfo
+>
+
+// Get typed mocks for StationModel
 const mockGetStations = StationModel.getStations as MockedFunction<
   typeof StationModel.getStations
 >
@@ -74,6 +94,8 @@ const mockAddStation = StationModel.addStation as MockedFunction<
 const mockDeleteStations = StationModel.deleteStations as MockedFunction<
   typeof StationModel.deleteStations
 >
+
+// Get typed mocks for SurfForecastModel
 const mockGetSurfForecasts =
   SurfForecastModel.getSurfForecasts as MockedFunction<
     typeof SurfForecastModel.getSurfForecasts
@@ -101,40 +123,25 @@ describe('API Routes', () => {
   })
 
   describe('GET /buoys', () => {
-    it('should return buoys data', async () => {
-      const mockBuoys: FormatedBuoy[] = [
+    it('should return all buoys info', async () => {
+      const mockBuoys = [
         {
-          station: '7113',
-          date: 1672574400000,
-          period: 5,
-          height: 2,
-          avgDirection: 90,
-          peakDirection: 85,
+          buoyId: '7113',
+          buoyName: 'Test Buoy',
+          location: { type: 'Point' as const, coordinates: [-5.5, 43.5] },
         },
       ]
-      mockGetBuoys.mockResolvedValue(mockBuoys)
-
-      const response = await request(app)
-        .get('/buoys')
-        .query({ limit: 6, buoy: '7113' })
-
-      expect(response.status).toBe(200)
-      expect(response.body).toEqual(mockBuoys)
-      expect(mockGetBuoys).toHaveBeenCalledWith({ limit: 6, buoy: '7113' })
-    })
-
-    it('should use default values when no query params', async () => {
-      const mockBuoys: FormatedBuoy[] = []
-      mockGetBuoys.mockResolvedValue(mockBuoys)
+      mockGetAllBuoysInfo.mockResolvedValue(mockBuoys)
 
       const response = await request(app).get('/buoys')
 
       expect(response.status).toBe(200)
-      expect(mockGetBuoys).toHaveBeenCalledWith({ limit: 6, buoy: '7113' })
+      expect(response.body).toEqual(mockBuoys)
+      expect(mockGetAllBuoysInfo).toHaveBeenCalled()
     })
 
     it('should handle errors', async () => {
-      mockGetBuoys.mockRejectedValue(new Error('DB error'))
+      mockGetAllBuoysInfo.mockRejectedValue(new Error('DB error'))
 
       const response = await request(app).get('/buoys')
 
@@ -143,24 +150,158 @@ describe('API Routes', () => {
     })
   })
 
+  describe('GET /buoys/:id', () => {
+    it('should return buoy info by id', async () => {
+      const mockBuoy = {
+        buoyId: '7113',
+        buoyName: 'Test Buoy',
+        location: { type: 'Point' as const, coordinates: [-5.5, 43.5] },
+      }
+      mockGetBuoysInfoById.mockResolvedValue(mockBuoy)
+
+      const response = await request(app).get('/buoys/7113')
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual(mockBuoy)
+      expect(mockGetBuoysInfoById).toHaveBeenCalledWith('7113')
+    })
+
+    it('should return 404 for missing buoy ID', async () => {
+      const response = await request(app).get('/buoys/')
+
+      expect(response.status).toBe(500)
+    })
+  })
+
+  describe('GET /buoys/:id/data', () => {
+    it('should return buoy data with default limit', async () => {
+      const mockData = [
+        {
+          buoyId: '7113',
+          date: '2026-01-07T18:18:54.583Z',
+          waveHeight: 2.5,
+          period: 8,
+        },
+      ]
+      mockGetBuoys.mockResolvedValue(mockData)
+
+      const response = await request(app).get('/buoys/7113/data')
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual(mockData)
+      expect(mockGetBuoys).toHaveBeenCalledWith({ limit: 6, buoyId: '7113' })
+    })
+
+    it('should return buoy data with custom limit', async () => {
+      const mockData: Array<{
+        buoyId: string
+        date: string
+        waveHeight: number
+        period: number
+      }> = []
+      mockGetBuoys.mockResolvedValue(mockData)
+
+      const response = await request(app).get('/buoys/7113/data?limit=10')
+
+      expect(response.status).toBe(200)
+      expect(mockGetBuoys).toHaveBeenCalledWith({ limit: 10, buoyId: '7113' })
+    })
+
+    it('should reject invalid limit (too high)', async () => {
+      const response = await request(app).get('/buoys/7113/data?limit=200')
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+    })
+
+    it('should reject invalid limit (negative)', async () => {
+      const response = await request(app).get('/buoys/7113/data?limit=-5')
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+    })
+  })
+
+  describe('POST /buoys/:id', () => {
+    it('should add a new buoy', async () => {
+      mockAddBuoyInfo.mockResolvedValue(undefined)
+
+      const response = await request(app)
+        .post('/buoys/7113')
+        .send({
+          buoyName: 'New Buoy',
+          location: {
+            type: 'Point',
+            coordinates: [-5.5, 43.5],
+          },
+        })
+
+      expect(response.status).toBe(201)
+      expect(response.body).toEqual({ message: 'New buoy added successfully' })
+      expect(mockAddBuoyInfo).toHaveBeenCalledWith({
+        buoyId: '7113',
+        buoyName: 'New Buoy',
+        location: {
+          type: 'Point',
+          coordinates: [-5.5, 43.5],
+        },
+        body: undefined,
+      })
+    })
+
+    it('should reject invalid coordinates (wrong format)', async () => {
+      const response = await request(app)
+        .post('/buoys/7113')
+        .send({
+          buoyName: 'New Buoy',
+          location: {
+            coordinates: [-5.5], // Missing latitude
+          },
+        })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+    })
+
+    it('should reject missing buoyName', async () => {
+      const response = await request(app)
+        .post('/buoys/7113')
+        .send({
+          location: {
+            coordinates: [-5.5, 43.5],
+          },
+        })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+    })
+  })
+
+  describe('DELETE /buoys/data', () => {
+    it('should delete buoy data', async () => {
+      mockDeleteBuoyData.mockResolvedValue(undefined)
+
+      const response = await request(app).delete('/buoys/data')
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        message: 'Buoy data deleted successfully',
+      })
+      expect(mockDeleteBuoyData).toHaveBeenCalled()
+    })
+  })
+
   describe('DELETE /buoys', () => {
-    it('should delete buoys and return success message', async () => {
-      mockDeleteBuoys.mockResolvedValue(undefined)
+    it('should delete buoy info', async () => {
+      mockDeleteBuoysInfo.mockResolvedValue(undefined)
 
       const response = await request(app).delete('/buoys')
 
       expect(response.status).toBe(200)
-      expect(response.text).toBe('Buoy data deleted successfully!')
-      expect(mockDeleteBuoys).toHaveBeenCalled()
-    })
-
-    it('should handle errors', async () => {
-      mockDeleteBuoys.mockRejectedValue(new Error('DB error'))
-
-      const response = await request(app).delete('/buoys')
-
-      expect(response.status).toBe(500)
-      expect(response.body).toHaveProperty('error')
+      expect(response.body).toEqual({
+        message: 'Buoy info deleted successfully',
+      })
+      expect(mockDeleteBuoysInfo).toHaveBeenCalledWith(undefined)
     })
   })
 
@@ -205,6 +346,24 @@ describe('API Routes', () => {
       })
     })
 
+    it('should reject missing name', async () => {
+      const response = await request(app)
+        .post('/stations')
+        .send({ station: '789' })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+    })
+
+    it('should reject missing station ID', async () => {
+      const response = await request(app)
+        .post('/stations')
+        .send({ name: 'New Station' })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+    })
+
     it('should handle errors', async () => {
       mockAddStation.mockRejectedValue(new Error('DB error'))
 
@@ -238,7 +397,7 @@ describe('API Routes', () => {
     })
   })
 
-  describe('GET /surf-forecast/test-spot', () => {
+  describe('GET /surf-forecast/:spot', () => {
     it('should return surf forecasts', async () => {
       const mockForecasts: WaveData[] = [
         {
@@ -324,23 +483,26 @@ describe('API Routes', () => {
       const response = await request(app).get('/scrape')
 
       expect(response.status).toBe(200)
-      expect(response.body).toEqual({
-        message: 'Scraping completed successfully!',
-      })
+      expect(response.body).toHaveProperty('message')
+      expect(response.body.message).toBe('Scraping completed successfully!')
+      expect(response.body).toHaveProperty('results')
       expect(mockScheduledUpdate).toHaveBeenCalled()
       expect(mockUpdateSurfForecast).toHaveBeenCalled()
     })
 
-    it('should handle scraping errors gracefully', async () => {
+    it('should handle partial scraping failures', async () => {
       mockScheduledUpdate.mockRejectedValue(new Error('Scrape error'))
       mockUpdateSurfForecast.mockResolvedValue(undefined)
 
       const response = await request(app).get('/scrape')
 
-      expect(response.status).toBe(200)
-      expect(response.body).toEqual({
-        message: 'Scraping completed successfully!',
-      })
+      expect(response.status).toBe(207) // Multi-Status
+      expect(response.body).toHaveProperty('message')
+      expect(response.body.message).toBe(
+        'Scraping completed with some failures',
+      )
+      expect(response.body).toHaveProperty('results')
+      expect(response.body.results).toHaveLength(2)
     })
   })
 })

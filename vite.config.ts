@@ -12,6 +12,9 @@ export default defineConfig({
       '@middleware': path.resolve(__dirname, './src/middleware'),
       '@data': path.resolve(__dirname, './src/data'),
       '@logger': path.resolve(__dirname, './src/logger'),
+      '@config': path.resolve(__dirname, './src/config'),
+      '@schemas': path.resolve(__dirname, './src/schemas'),
+      '@services': path.resolve(__dirname, './src/services'),
     },
   },
   test: {

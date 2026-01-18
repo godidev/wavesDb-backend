@@ -191,7 +191,7 @@ describe('updateBuoysData', () => {
     }
     global.fetch = vi.fn().mockResolvedValue(mockResponse)
 
-    const result = await updateBuoysData({ station: 'test', body: 'test' })
+    const result = await updateBuoysData({ buoyId: 'test', body: 'test' })
 
     expect(global.fetch).toHaveBeenCalledWith(
       'https://portus.puertos.es/portussvr/api/RTData/station/test?locale=es',
@@ -208,7 +208,7 @@ describe('updateBuoysData', () => {
       .mockImplementation(() => {})
     global.fetch = vi.fn().mockRejectedValue(new Error('fetch error'))
 
-    const result = await updateBuoysData({ station: 'test', body: 'test' })
+    const result = await updateBuoysData({ buoyId: 'test', body: 'test' })
 
     expect(result).toEqual([])
     consoleErrorSpy.mockRestore()

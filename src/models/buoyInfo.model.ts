@@ -1,11 +1,17 @@
 import { InferSchemaType, Schema, model } from 'mongoose'
+import { NotFoundError } from '../errors/AppError'
 
 const buoyInfoSchema = new Schema(
   {
     buoyId: { type: String, required: true, unique: true, index: true },
     buoyName: { type: String, required: true },
     location: {
-      type: { type: String, enum: ['Point'], required: true, default: 'Point' },
+      type: {
+        type: String,
+        enum: ['Point'],
+        required: true,
+        default: 'Point',
+      },
       coordinates: { type: [Number], required: true },
     },
     body: { type: String },
@@ -20,57 +26,29 @@ export type BuoyInfoDoc = InferSchemaType<typeof buoyInfoSchema>
 const BuoyInfo = model('BuoyInfo', buoyInfoSchema)
 
 export class BuoyInfoModel {
-  static async getAllBuoysInfo() {
-    try {
-      return await BuoyInfo.find().select('-_id -__v').lean<BuoyInfoDoc[]>()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      throw new Error(
-        `Couldn't get buoys info from the database. Original error: ${msg}`,
-      )
-    }
+  static async getAllBuoysInfo(): Promise<BuoyInfoDoc[]> {
+    return BuoyInfo.find().select('-_id -__v').lean<BuoyInfoDoc[]>()
   }
 
-  static async getBuoysInfoById(id: string) {
-    try {
-      return await BuoyInfo.findOne({ buoyId: id })
-        .select('-_id -__v')
-        .lean<BuoyInfoDoc | null>()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      throw new Error(
-        `Couldn't get buoy info by ID from the database. Original error: ${msg}`,
-      )
-    }
+  static async getBuoysInfoById(id: string): Promise<BuoyInfoDoc | null> {
+    return BuoyInfo.findOne({ buoyId: id })
+      .select('-_id -__v')
+      .lean<BuoyInfoDoc | null>()
   }
 
-  static async addBuoyInfo(buoyInfo: BuoyInfoDoc) {
-    try {
-      const newBuoyInfo = new BuoyInfo(buoyInfo)
-      await newBuoyInfo.save()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      throw new Error(
-        `Couldn't add buoy info to the database. Original error: ${msg}`,
-      )
-    }
+  static async addBuoyInfo(buoyInfo: BuoyInfoDoc): Promise<void> {
+    const newBuoyInfo = new BuoyInfo(buoyInfo)
+    await newBuoyInfo.save()
   }
 
-  static async deleteBuoysInfo(id?: string) {
-    try {
-      if (id) {
-        const res = await BuoyInfo.deleteOne({ buoyId: id })
-        if (res.deletedCount === 0) {
-          throw new Error(`No buoy found with ID: ${id}`)
-        }
-      } else {
-        await BuoyInfo.deleteMany({})
+  static async deleteBuoysInfo(id?: string): Promise<void> {
+    if (id) {
+      const res = await BuoyInfo.deleteOne({ buoyId: id })
+      if (res.deletedCount === 0) {
+        throw new NotFoundError(`No buoy found with ID: ${id}`)
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      throw new Error(
-        `Couldn't delete buoys info from the database. Original error: ${msg}`,
-      )
+    } else {
+      await BuoyInfo.deleteMany({})
     }
   }
 }

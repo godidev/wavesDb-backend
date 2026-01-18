@@ -21,7 +21,8 @@
       "@data/*": ["data/*"],
       "@logger": ["logger"],
       "@config/*": ["config/*"],
-      "@services/*": ["services/*"]
+      "@services/*": ["services/*"],
+      "@schemas/*": ["schemas/*"]
     }
   },
   "include": ["src"],

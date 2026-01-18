@@ -1,44 +1,32 @@
-import { logger } from '@logger'
 import { SurfForecastModel } from '@models/surf-forecast.model'
 import { Request, Response } from 'express'
+import { asyncHandler } from '../middleware/asyncHandler'
+import { NotFoundError } from '../errors/AppError'
 
 export class SurfForecastController {
-  static async getSurfForecasts(req: Request, res: Response) {
-    try {
+  static getSurfForecasts = asyncHandler(
+    async (req: Request, res: Response) => {
+      const { spot } = req.params
       const { page, limit } = req.query
-      const spot = req.params.spot
-      if (!spot) {
-        res.status(400).json({ error: 'Spot parameter is required' })
-        return
-      }
-      const pageNumber = Math.max(1, Number(page ?? 1) || 1)
-      const limitNumber = Math.min(200, Math.max(1, Number(limit ?? 50) || 50))
 
       const forecasts = await SurfForecastModel.getSurfForecasts({
         spot,
-        page: pageNumber,
-        limit: limitNumber,
+        page: Number(page),
+        limit: Number(limit),
       })
-      if (!forecasts.length) {
-        res
-          .status(404)
-          .json({ error: 'No forecasts found for the specified spot' })
-        return
-      }
-      res.json(forecasts)
-    } catch (err) {
-      logger.error(`Error getting surf forecasts: ${err}`)
-      res.status(500).json({ error: 'Internal server error' })
-    }
-  }
 
-  static async deleteSurfForecast(req: Request, res: Response) {
-    try {
+      if (!forecasts.length) {
+        throw new NotFoundError('No forecasts found for the specified spot')
+      }
+
+      res.json(forecasts)
+    },
+  )
+
+  static deleteSurfForecast = asyncHandler(
+    async (req: Request, res: Response) => {
       await SurfForecastModel.deleteSurfForecast()
       res.status(200).send('Surf Forecast data deleted successfully!')
-    } catch (err) {
-      logger.error(`Error deleting surf forecasts: ${err}`)
-      res.status(500).json({ error: 'Internal server error' })
-    }
-  }
+    },
+  )
 }

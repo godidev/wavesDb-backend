@@ -18,9 +18,10 @@ buoyDataSchema.index({ buoyId: 1, date: -1 }, { unique: true })
 export type BuoyDataDoc = InferSchemaType<typeof buoyDataSchema>
 
 const BuoyData = model<BuoyDataDoc>('BuoyData', buoyDataSchema)
+
 export interface BuoyParams {
   limit: number
-  buoy?: string
+  buoyId?: string
 }
 
 function isDuplicateKeyError(err: unknown): err is { code: number } {
@@ -31,79 +32,40 @@ function isDuplicateKeyError(err: unknown): err is { code: number } {
 }
 
 export class BuoyDataModel {
-  static async getBuoys({ limit, buoy }: BuoyParams) {
-    try {
-      const buoys: FormattedBuoys[] = await BuoyData.find({ buoyId: buoy })
-        .sort({ date: -1 })
-        .limit(limit)
-        .select('-_id -__v')
-      return buoys
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new Error(
-          `Couldn't get buoys from the database. Original error: ${err.message}`,
-        )
-      } else {
-        throw new Error(
-          "Couldn't get buoys from the database, and the error is not an instance of Error.",
-        )
-      }
-    }
+  static async getBuoys({
+    limit,
+    buoyId,
+  }: BuoyParams): Promise<FormattedBuoys[]> {
+    return BuoyData.find({ buoyId })
+      .sort({ date: -1 })
+      .limit(limit)
+      .select('-_id -__v')
+      .lean<FormattedBuoys[]>()
   }
 
-  static async getBuoyById({ id, limit }: { id: string; limit?: number }) {
-    try {
-      const buoyData = await BuoyData.find({ buoyId: id })
-        .sort({ date: -1 })
-        .limit(limit || 6)
-        .select('-_id -__v')
-      return buoyData
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new Error(
-          `Couldn't get buoy by ID from the database. Original error: ${err.message}`,
-        )
-      } else {
-        throw new Error(
-          "Couldn't get buoy by ID from the database, and the error is not an instance of Error.",
-        )
-      }
-    }
+  static async getBuoyById({
+    id,
+    limit = 6,
+  }: {
+    id: string
+    limit?: number
+  }): Promise<FormattedBuoys[]> {
+    return BuoyData.find({ buoyId: id })
+      .sort({ date: -1 })
+      .limit(limit)
+      .select('-_id -__v')
+      .lean<FormattedBuoys[]>()
   }
 
-  static async deleteBuoyData() {
-    try {
-      await BuoyData.deleteMany()
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new Error(
-          `Couldn't delete buoys from the database. Original error: ${err.message}`,
-        )
-      } else {
-        throw new Error(
-          "Couldn't delete buoys from the database, and the error is not an instance of Error.",
-        )
-      }
-    }
+  static async deleteBuoyData(): Promise<void> {
+    await BuoyData.deleteMany()
   }
 
-  static async getLastBuoy() {
-    try {
-      const lastBuoyData = await BuoyData.findOne()
-        .sort({ _id: -1 })
-        .select('-_id -__v')
-      if (!lastBuoyData) {
-        throw new Error('No buoy data found')
-      }
-      return lastBuoyData
-    } catch (err) {
-      if (err instanceof Error) {
-        throw new Error("Couldn't get last buoy data from the database")
-      }
-    }
+  static async getLastBuoy(): Promise<BuoyDataDoc | null> {
+    return BuoyData.findOne().sort({ _id: -1 }).select('-_id -__v').lean()
   }
 
-  static async addMultipleBuoys(buoys: FormattedBuoys[]) {
+  static async addMultipleBuoys(buoys: FormattedBuoys[]): Promise<void> {
     if (!buoys.length) return
 
     const docs = buoys.map(
@@ -120,10 +82,9 @@ export class BuoyDataModel {
     try {
       await BuoyData.insertMany(docs, { ordered: false })
     } catch (err: unknown) {
-      if (isDuplicateKeyError(err)) {
-        return
+      if (!isDuplicateKeyError(err)) {
+        throw err
       }
-      throw err
     }
   }
 }
