@@ -20,7 +20,7 @@ export interface BuoyFetchData {
 
 export type FormattedBuoys = {
   date: number
-  station: string
+  buoyId: string
   period: number
   height: number
   avgDirection: number
@@ -39,7 +39,7 @@ export interface DbBuoyRecord {
 
 export interface BuoyQuery {
   limit: number
-  buoy: string
+  buoyId: string
 }
 
 export interface BuoyResponse {
