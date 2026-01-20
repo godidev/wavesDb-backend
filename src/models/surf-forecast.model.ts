@@ -37,14 +37,19 @@ export class SurfForecastModel {
     spot,
     page,
     limit,
+    hoursBeforeNow = 3,
   }: {
     spot: string
     page: number
     limit: number
+    hoursBeforeNow?: number
   }) {
     try {
-      const forecast: WaveData[] = await SurfForecast.find({ spot })
-        .sort({ date: -1 })
+      const forecast: WaveData[] = await SurfForecast.find({
+        spot,
+        date: { $gte: new Date(Date.now() - hoursBeforeNow * 60 * 60 * 1000) },
+      })
+        .sort({ date: 1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .select('-__v -_id')
