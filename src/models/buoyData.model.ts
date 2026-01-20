@@ -48,20 +48,6 @@ export class BuoyDataModel {
       )
   }
 
-  static async getBuoyById({
-    id,
-    limit = 6,
-  }: {
-    id: string
-    limit?: number
-  }): Promise<FormattedBuoys[]> {
-    return BuoyData.find({ buoyId: id })
-      .sort({ date: -1 })
-      .limit(limit)
-      .select('-_id -__v')
-      .lean<FormattedBuoys[]>()
-  }
-
   static async deleteBuoyData(): Promise<void> {
     await BuoyData.deleteMany()
   }
