@@ -41,6 +41,11 @@ export class BuoyDataModel {
       .limit(limit)
       .select('-_id -__v')
       .lean<FormattedBuoys[]>()
+      .then((docs) =>
+        docs.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        ),
+      )
   }
 
   static async getBuoyById({
