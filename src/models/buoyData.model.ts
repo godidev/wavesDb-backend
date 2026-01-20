@@ -52,10 +52,6 @@ export class BuoyDataModel {
     await BuoyData.deleteMany()
   }
 
-  static async getLastBuoy(): Promise<BuoyDataDoc | null> {
-    return BuoyData.findOne().sort({ _id: -1 }).select('-_id -__v').lean()
-  }
-
   static async addMultipleBuoys(buoys: FormattedBuoys[]): Promise<void> {
     if (!buoys.length) return
 
