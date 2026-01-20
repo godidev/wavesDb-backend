@@ -36,16 +36,12 @@ export class BuoyDataModel {
     limit,
     buoyId,
   }: BuoyParams): Promise<FormattedBuoys[]> {
-    return BuoyData.find({ buoyId })
+    const docs = await BuoyData.find({ buoyId })
       .sort({ date: -1 })
       .limit(limit)
       .select('-_id -__v')
       .lean<FormattedBuoys[]>()
-      .then((docs) =>
-        docs.sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-        ),
-      )
+    return docs.reverse()
   }
 
   static async deleteBuoyData(): Promise<void> {
