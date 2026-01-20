@@ -9,7 +9,9 @@ export default app
 
 const { PORT, MONGO_URL, NODE_ENV } = loadEnvironment()
 
-if (NODE_ENV !== 'test') {
+const isVercel = process.env.VERCEL === '1'
+
+if (NODE_ENV !== 'test' && !isVercel) {
   connectToDatabase(MONGO_URL)
     .then(() => {
       logger.info('Connected to database')
