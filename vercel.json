@@ -1,16 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "framework": null,
+  "buildCommand": "npm run build:vercel",
   "outputDirectory": "public",
+  "functions": {
+    "api-build/*.js": {
+      "includeFiles": "api-build/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/cron",
-      "destination": "/api/cron.ts"
+      "destination": "/api-build/cron.js"
     },
     {
       "source": "/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/api-build/index.js"
     }
   ]
 }

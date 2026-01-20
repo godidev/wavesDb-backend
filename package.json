@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "LOG_LEVEL=debug NODE_ENV=development tsx --env-file=.env --watch ./src/index.ts ",
     "build": "tsc",
+    "build:vercel": "tsup",
     "start": "pm2 start dist/index.js --name backend --node-args='--env-file=./dist/.env'",
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" \"api/**/*.{ts,tsx,js,jsx}\"",
     "format": "prettier --write .",
@@ -44,6 +45,7 @@
     "globals": "^15.13.0",
     "prettier": "3.4.1",
     "supertest": "^7.2.2",
+    "tsup": "^8.5.1",
     "tsx": "^4.19.2",
     "typescript-eslint": "^8.52.0",
     "vitest": "^4.0.16"
