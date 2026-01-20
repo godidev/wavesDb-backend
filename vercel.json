@@ -3,19 +3,14 @@
   "version": 2,
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "public",
-  "functions": {
-    "api-build/*.js": {
-      "includeFiles": "api-build/**"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/cron",
-      "destination": "/api-build/cron.js"
+      "destination": "/api/cron.js"
     },
     {
       "source": "/(.*)",
-      "destination": "/api-build/index.js"
+      "destination": "/api/index.js"
     }
   ]
 }

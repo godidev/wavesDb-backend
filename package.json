@@ -7,7 +7,7 @@
     "build": "tsc",
     "build:vercel": "tsup",
     "start": "pm2 start dist/index.js --name backend --node-args='--env-file=./dist/.env'",
-    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" \"api/**/*.{ts,tsx,js,jsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" \"api-src/**/*.{ts,tsx,js,jsx}\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest",

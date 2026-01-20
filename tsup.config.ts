@@ -1,8 +1,8 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['api/index.ts', 'api/cron.ts'],
-  outDir: 'api-build',
+  entry: ['api-src/index.ts', 'api-src/cron.ts'],
+  outDir: 'api',
   format: ['cjs'],
   target: 'node20',
   clean: true,
