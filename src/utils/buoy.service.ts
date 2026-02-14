@@ -109,6 +109,10 @@ export async function updateBuoysData({
 }
 
 export async function scheduledUpdate() {
+  const startedAt = Date.now()
+  let updatedBuoys = 0
+  const failedBuoys: string[] = []
+
   try {
     const buoys = await BuoyInfoModel.getAllBuoysInfo()
 
@@ -128,15 +132,24 @@ export async function scheduledUpdate() {
 
         const newBuoys = await updateBuoysData({ buoyId, body })
         await BuoyDataModel.addMultipleBuoys(newBuoys)
+        updatedBuoys += 1
 
-        logger.info(`Successfully updated buoy ${buoyId}`)
+        logger.info({ buoyId, records: newBuoys.length }, 'Updated buoy data')
       } catch (err) {
+        failedBuoys.push(buoyId)
         const message = err instanceof Error ? err.message : String(err)
         logger.error(`Failed to update buoy ${buoyId}: ${message}`)
       }
     }
 
-    logger.info('Scheduled buoy update completed')
+    logger.info(
+      {
+        updatedBuoys,
+        failedBuoys,
+        durationMs: Date.now() - startedAt,
+      },
+      'Scheduled buoy update completed',
+    )
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     logger.error(`Error during scheduled buoy update: ${message}`)

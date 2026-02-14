@@ -32,28 +32,35 @@ async function executeTask(
 export async function scrapeAll(): Promise<{
   success: boolean
   results: TaskResult[]
+  durationMs: number
 }> {
   logger.info('Starting scrape all operation')
+  const startedAt = Date.now()
 
   const results: TaskResult[] = []
 
   results.push(await executeTask(updateBuoys, 'Buoy Scraping'))
-
   results.push(await executeTask(updateSurfForecast, 'Surf Forecast Scraping'))
 
   const allSuccessful = results.every((r) => r.success)
+  const durationMs = Date.now() - startedAt
 
   if (allSuccessful) {
-    logger.info('All scraping tasks completed successfully')
+    logger.info({ durationMs }, 'All scraping tasks completed successfully')
   } else {
     const failed = results.filter((r) => !r.success)
     logger.warn(
-      `Scraping completed with ${failed.length} failure(s): ${failed.map((f) => f.taskName).join(', ')}`,
+      {
+        durationMs,
+        failedTasks: failed.map((f) => f.taskName),
+      },
+      `Scraping completed with ${failed.length} failure(s)`,
     )
   }
 
   return {
     success: allSuccessful,
     results,
+    durationMs,
   }
 }
