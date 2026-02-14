@@ -2,6 +2,11 @@ import { ErrorRequestHandler } from 'express'
 import { AppError } from '../errors/AppError'
 import { logger } from '@logger'
 
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message
+  return 'Unknown error'
+}
+
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
@@ -21,7 +26,8 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     })
     return
   }
-  logger.error({ err }, `Unexpected error: ${err.message}`)
+
+  logger.error({ err }, `Unexpected error: ${getErrorMessage(err)}`)
 
   res.status(500).json({
     error: 'Internal server error',

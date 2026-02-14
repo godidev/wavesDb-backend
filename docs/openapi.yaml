@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+  title: Waves DB API
+  version: 1.0.0
+servers:
+  - url: https://waves-db-backend.vercel.app
+  - url: http://localhost:3000
+paths:
+  /buoys:
+    get:
+      summary: Lista de boyas disponibles
+      responses:
+        '200':
+          description: OK
+  /buoys/{id}:
+    get:
+      summary: Información de una boya
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: No encontrada
+  /buoys/{id}/data:
+    get:
+      summary: Histórico de datos de boya
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 6
+      responses:
+        '200':
+          description: OK
+  /surf-forecast/{spot}:
+    get:
+      summary: Forecast por spot
+      parameters:
+        - in: path
+          name: spot
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: OK
+  /scrape:
+    get:
+      summary: Lanza scraping manual
+      parameters:
+        - in: header
+          name: x-api-key
+          schema:
+            type: string
+          required: false
+          description: Requerida si SCRAPE_API_KEY está configurada
+      responses:
+        '200':
+          description: Scrape completo OK
+        '207':
+          description: Scrape con fallos parciales
+        '401':
+          description: Unauthorized
