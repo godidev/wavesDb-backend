@@ -5,37 +5,73 @@ import { DataSwellState, WaveData } from '@myTypes/surf-forecast.types'
 import spots from '@data/surf-forecast/basque-country-surf-spots.json'
 import { logger } from '@logger'
 
+const SURF_FORECAST_TIMEOUT_MS = 12000
+const SURF_FORECAST_MAX_RETRIES = 3
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const rand = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1)) + min
+
+const getBackoffDelay = (attempt: number) => 750 * 2 ** (attempt - 1)
+
 async function fetchSurfForecast(beach: string): Promise<string> {
   const url = `https://es.surf-forecast.com/breaks/${beach}/forecasts/data?parts=basic&period_types=h&forecast_duration=48h`
 
-  const options = {
-    method: 'GET',
-    headers: {
-      accept: 'application/json',
-      'accept-language': 'en-US,en;q=0.9,es;q=0.8',
-      cookie: 'last_loc=3580; ',
-      '^if-none-match': 'W/^^26736cd3943005b5e3c01a6cf13a8798^^^',
-      priority: 'u=1, i',
-      referer: `https://es.surf-forecast.com/breaks/${beach}/forecasts/latest`,
-      '^sec-ch-ua': '^^Google',
-      'sec-ch-ua-mobile': '?0',
-      '^sec-ch-ua-platform': '^^Windows^^^',
-      'sec-fetch-dest': 'empty',
-      'sec-fetch-mode': 'cors',
-      'sec-fetch-site': 'same-origin',
-      'user-agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-      'x-csrf-token':
-        'fX2oQTDp4Y0cUt8YM8H3V/eKNP1X/Iy2MTOyPLACKmiTLblSBmy78AVmz3xoOB8tbPTyybzKlr1nn6sYZs5teg==',
-    },
+  for (let attempt = 1; attempt <= SURF_FORECAST_MAX_RETRIES; attempt++) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => {
+      controller.abort()
+    }, SURF_FORECAST_TIMEOUT_MS)
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          accept: 'application/json',
+          'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
+          'user-agent':
+            'Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const data = (await response.json()) as {
+        period_types?: {
+          h?: {
+            parts?: {
+              basic?: {
+                content?: string
+              }
+            }
+          }
+        }
+      }
+
+      const content = data.period_types?.h?.parts?.basic?.content
+      if (!content) {
+        throw new Error('Missing forecast content in upstream response')
+      }
+
+      return content
+    } catch (err) {
+      const isLastAttempt = attempt === SURF_FORECAST_MAX_RETRIES
+      const message = err instanceof Error ? err.message : String(err)
+
+      if (isLastAttempt) {
+        throw new Error(`Error fetching surf forecast for ${beach}: ${message}`)
+      }
+
+      await sleep(getBackoffDelay(attempt))
+    } finally {
+      clearTimeout(timeout)
+    }
   }
-  try {
-    const response = await fetch(url, options)
-    const data = await response.json()
-    return data.period_types.h.parts.basic.content
-  } catch {
-    throw new Error('Error fetching surf forecast')
-  }
+
+  throw new Error(`Error fetching surf forecast for ${beach}`)
 }
 
 export async function parseForecast(spot: string, html: string) {
@@ -120,11 +156,11 @@ export function getDate(date: string): number[] {
   return parsedTime === 12 ? [parsedDay, 12] : [parsedDay, parsedTime + 12]
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-const rand = (min: number, max: number) =>
-  Math.floor(Math.random() * (max - min + 1)) + min
-
 export async function updateSurfForecast() {
+  const startedAt = Date.now()
+  let updatedSpots = 0
+  const failedSpots: string[] = []
+
   for (const spot of spots) {
     await sleep(rand(2500, 8000))
     try {
@@ -132,13 +168,27 @@ export async function updateSurfForecast() {
       const newHtml = `<html><body><table>${html}</table></body></html>`
       const parsedData = await parseForecast(spot, newHtml)
       await SurfForecastModel.addMultipleForecast(parsedData)
-      logger.info({ spot }, 'Updated surf forecast')
+      updatedSpots += 1
+      logger.info(
+        { spot, records: parsedData.length },
+        'Updated surf forecast',
+      )
     } catch (err) {
+      failedSpots.push(spot)
       if (err instanceof Error) {
         logger.error({ spot, err: err.message }, 'Error updating surf forecast')
       }
     }
   }
+
+  logger.info(
+    {
+      updatedSpots,
+      failedSpots,
+      durationMs: Date.now() - startedAt,
+    },
+    'Surf forecast update finished',
+  )
 }
 function madridToUtcDate(
   year: number,

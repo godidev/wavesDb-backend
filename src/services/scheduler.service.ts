@@ -15,7 +15,14 @@ export function initializeScheduler(): void {
       async () => {
         logger.info('Scheduled scraping task triggered')
         try {
-          await scrapeAll()
+          const result = await scrapeAll()
+          logger.info(
+            {
+              success: result.success,
+              durationMs: result.durationMs,
+            },
+            'Scheduled scraping task finished',
+          )
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : String(err)
           logger.error(`Scheduled scraping task failed: ${errorMessage}`)
