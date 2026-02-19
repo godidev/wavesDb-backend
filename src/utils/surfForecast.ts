@@ -97,7 +97,7 @@ export async function parseForecast(spot: string, html: string) {
       spot,
       validSwells,
       wind: {
-        speed: invert(speed),
+        speed: Number(speed),
         angle: invert(windAngle),
       },
       energy: Number(energyValue),
