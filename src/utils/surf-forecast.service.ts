@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import * as cheerio from 'cheerio'
 import { SurfForecastModel } from '@models/surf-forecast.model'
 import { DataSwellState, WaveData } from '@myTypes/surf-forecast.types'
-import spots from '@data/surf-forecast/basque-country-surf-spots.json'
+import spots from '@data/surf-forecast/surf-spots.json'
 import { logger } from '@logger'
 
 const SURF_FORECAST_TIMEOUT_MS = 12000
@@ -169,10 +169,7 @@ export async function updateSurfForecast() {
       const parsedData = await parseForecast(spot, newHtml)
       await SurfForecastModel.addMultipleForecast(parsedData)
       updatedSpots += 1
-      logger.info(
-        { spot, records: parsedData.length },
-        'Updated surf forecast',
-      )
+      logger.info({ spot, records: parsedData.length }, 'Updated surf forecast')
     } catch (err) {
       failedSpots.push(spot)
       if (err instanceof Error) {
