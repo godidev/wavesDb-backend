@@ -3,7 +3,6 @@ import request from 'supertest'
 import app from '../src/index'
 import { BuoyDataModel } from '../src/models/buoyData.model'
 import { BuoyInfoModel } from '../src/models/buoyInfo.model'
-import { StationModel } from '../src/models/station.model'
 import { SurfForecastModel } from '../src/models/surf-forecast.model'
 import { WaveData } from '../src/types/surf-forecast.types'
 
@@ -25,14 +24,6 @@ vi.mock('../src/models/buoyInfo.model', () => ({
     getBuoysInfoById: vi.fn(),
     addBuoyInfo: vi.fn(),
     deleteBuoysInfo: vi.fn(),
-  },
-}))
-
-vi.mock('../src/models/station.model', () => ({
-  StationModel: {
-    getStations: vi.fn(),
-    addStation: vi.fn(),
-    deleteStations: vi.fn(),
   },
 }))
 
@@ -82,17 +73,6 @@ const mockAddBuoyInfo = BuoyInfoModel.addBuoyInfo as MockedFunction<
 >
 const mockDeleteBuoysInfo = BuoyInfoModel.deleteBuoysInfo as MockedFunction<
   typeof BuoyInfoModel.deleteBuoysInfo
->
-
-// Get typed mocks for StationModel
-const mockGetStations = StationModel.getStations as MockedFunction<
-  typeof StationModel.getStations
->
-const mockAddStation = StationModel.addStation as MockedFunction<
-  typeof StationModel.addStation
->
-const mockDeleteStations = StationModel.deleteStations as MockedFunction<
-  typeof StationModel.deleteStations
 >
 
 // Get typed mocks for SurfForecastModel
@@ -302,98 +282,6 @@ describe('API Routes', () => {
         message: 'Buoy info deleted successfully',
       })
       expect(mockDeleteBuoysInfo).toHaveBeenCalledWith(undefined)
-    })
-  })
-
-  describe('GET /stations', () => {
-    it('should return stations data', async () => {
-      const mockStations = [
-        { name: 'Station 1', station: '123' },
-        { name: 'Station 2', station: '456' },
-      ]
-      mockGetStations.mockResolvedValue(mockStations)
-
-      const response = await request(app).get('/stations')
-
-      expect(response.status).toBe(200)
-      expect(response.body).toEqual(mockStations)
-      expect(mockGetStations).toHaveBeenCalled()
-    })
-
-    it('should handle errors', async () => {
-      mockGetStations.mockRejectedValue(new Error('DB error'))
-
-      const response = await request(app).get('/stations')
-
-      expect(response.status).toBe(500)
-      expect(response.body).toHaveProperty('error')
-    })
-  })
-
-  describe('POST /stations', () => {
-    it('should add a new station', async () => {
-      mockAddStation.mockResolvedValue(undefined)
-
-      const response = await request(app)
-        .post('/stations')
-        .send({ name: 'New Station', station: '789' })
-
-      expect(response.status).toBe(200)
-      expect(response.text).toBe('Station data updated successfully!')
-      expect(mockAddStation).toHaveBeenCalledWith({
-        name: 'New Station',
-        station: '789',
-      })
-    })
-
-    it('should reject missing name', async () => {
-      const response = await request(app)
-        .post('/stations')
-        .send({ station: '789' })
-
-      expect(response.status).toBe(400)
-      expect(response.body).toHaveProperty('error')
-    })
-
-    it('should reject missing station ID', async () => {
-      const response = await request(app)
-        .post('/stations')
-        .send({ name: 'New Station' })
-
-      expect(response.status).toBe(400)
-      expect(response.body).toHaveProperty('error')
-    })
-
-    it('should handle errors', async () => {
-      mockAddStation.mockRejectedValue(new Error('DB error'))
-
-      const response = await request(app)
-        .post('/stations')
-        .send({ name: 'New Station', station: '789' })
-
-      expect(response.status).toBe(500)
-      expect(response.body).toHaveProperty('error')
-    })
-  })
-
-  describe('DELETE /stations', () => {
-    it('should delete stations', async () => {
-      mockDeleteStations.mockResolvedValue(undefined)
-
-      const response = await request(app).delete('/stations')
-
-      expect(response.status).toBe(200)
-      expect(response.text).toBe('Station data deleted successfully!')
-      expect(mockDeleteStations).toHaveBeenCalled()
-    })
-
-    it('should handle errors', async () => {
-      mockDeleteStations.mockRejectedValue(new Error('DB error'))
-
-      const response = await request(app).delete('/stations')
-
-      expect(response.status).toBe(500)
-      expect(response.body).toHaveProperty('error')
     })
   })
 

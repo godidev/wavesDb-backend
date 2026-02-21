@@ -4,7 +4,6 @@ import {
   buoyLimitSchema,
   addBuoySchema,
 } from '../src/schemas/buoy.schema'
-import { addStationSchema } from '../src/schemas/station.schema'
 import { surfForecastSpotSchema } from '../src/schemas/surf-forecast.schema'
 
 describe('Zod Validation Schemas', () => {
@@ -186,58 +185,6 @@ describe('Zod Validation Schemas', () => {
         },
       }
       expect(() => addBuoySchema.parse(data)).toThrow()
-    })
-  })
-
-  describe('addStationSchema', () => {
-    it('should validate complete station data', () => {
-      const data = {
-        body: {
-          name: 'Test Station',
-          station: '123',
-        },
-      }
-      const result = addStationSchema.parse(data)
-      expect(result.body.name).toBe('Test Station')
-      expect(result.body.station).toBe('123')
-    })
-
-    it('should reject missing name', () => {
-      const data = {
-        body: {
-          station: '123',
-        },
-      }
-      expect(() => addStationSchema.parse(data)).toThrow()
-    })
-
-    it('should reject empty name', () => {
-      const data = {
-        body: {
-          name: '',
-          station: '123',
-        },
-      }
-      expect(() => addStationSchema.parse(data)).toThrow()
-    })
-
-    it('should reject missing station', () => {
-      const data = {
-        body: {
-          name: 'Test Station',
-        },
-      }
-      expect(() => addStationSchema.parse(data)).toThrow()
-    })
-
-    it('should reject empty station', () => {
-      const data = {
-        body: {
-          name: 'Test Station',
-          station: '',
-        },
-      }
-      expect(() => addStationSchema.parse(data)).toThrow()
     })
   })
 
