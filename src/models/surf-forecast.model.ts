@@ -33,6 +33,15 @@ export type SurfForecastDoc = InferSchemaType<typeof SurfForecastSchema>
 const SurfForecast = model<SurfForecastDoc>('SurfForecast', SurfForecastSchema)
 
 export class SurfForecastModel {
+  static async getAllSpots() {
+    try {
+      const spots = await SurfForecast.distinct('spot')
+      return spots
+    } catch {
+      throw new Error("Couldn't get spots from the database")
+    }
+  }
+
   static async getSurfForecasts({
     spot,
     page,

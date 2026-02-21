@@ -23,6 +23,11 @@ export class SurfForecastController {
     },
   )
 
+  static getAllSpots = asyncHandler(async (_req: Request, res: Response) => {
+    const spots = await SurfForecastModel.getAllSpots()
+    res.json(spots)
+  })
+
   static deleteSurfForecast = asyncHandler(
     async (req: Request, res: Response) => {
       await SurfForecastModel.deleteSurfForecast()
