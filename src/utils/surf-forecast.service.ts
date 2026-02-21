@@ -109,19 +109,27 @@ export async function parseForecast(spot: string, html: string) {
     ) as DataSwellState
     const dataWind = JSON.parse(waveElement.attr('data-wind') as string)
 
+    if (!dataDate || !dataSwellState || !dataWind) {
+      logger.debug(
+        { spot, index, dataDate, dataSwellState, dataWind },
+        'Skipping cell with missing attributes',
+      )
+      return
+    }
+
     const [day, hour] = getDate(dataDate as string)
     const finalDate = convertDate({ day, hour })
 
     const energyElement = energy.get(index)
     const energyValue = energyElement ? $(energyElement).text() : ''
 
-    const swells = dataSwellState.filter((item) => item !== null)
-
-    const validSwells = swells.map(({ period, angle, height }) => ({
-      angle: invert(angle),
-      height,
-      period,
-    }))
+    const validSwells = dataSwellState
+      .filter((item) => item !== null)
+      .map(({ period, angle, height }) => ({
+        angle: invert(angle),
+        height,
+        period,
+      }))
 
     const {
       speed,
@@ -133,10 +141,10 @@ export async function parseForecast(spot: string, html: string) {
       spot,
       validSwells,
       wind: {
-        speed: Number(speed),
-        angle: invert(windAngle),
+        speed: Number(speed) || 0,
+        angle: invert(windAngle) || 0,
       },
-      energy: Number(energyValue),
+      energy: Number(energyValue) || 0,
     })
   })
   return data
@@ -145,6 +153,7 @@ export async function parseForecast(spot: string, html: string) {
 const invert = (item: number) => (item > 180 ? item - 180 : item + 180)
 
 export function getDate(date: string): number[] {
+  logger.info({ date }, 'Parsing date string')
   const [, day, hour] = date.split(' ')
   const parsedDay = parseInt(day)
   const [, time, period] = /^(\d+)(AM|PM)$/.exec(hour)!
