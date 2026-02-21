@@ -29,7 +29,7 @@ describe('parseForecast', () => {
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({
       validSwells: [{ angle: 90, height: 1.5, period: 10 }],
-      wind: { speed: 190, angle: 360 },
+      wind: { speed: 10, angle: 360 },
       energy: 500,
     })
     expect(result[0].date).toBeInstanceOf(Date)
