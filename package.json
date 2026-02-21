@@ -6,6 +6,7 @@
     "dev": "LOG_LEVEL=debug NODE_ENV=development tsx --env-file=.env --watch ./src/index.ts ",
     "build": "tsc",
     "build:vercel": "tsup",
+    "vercel-build": "npm run build:vercel",
     "start": "pm2 start dist/index.js --name backend --node-args='--env-file=./dist/.env'",
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" \"api-src/**/*.{ts,tsx,js,jsx}\"",
     "format": "prettier --write .",
