@@ -9,6 +9,7 @@ export interface WaveData {
     angle: number
   }
   energy: number
+  source: 'general_7d' | 'hourly_48h'
 }
 
 type DataSwell = {
@@ -20,4 +21,30 @@ type DataSwell = {
 
 export type DataSwellItem = DataSwell | null
 
-export type DataSwellState = DataSwellItem[]
+export type DataSwellStateType = DataSwellItem[]
+
+export interface ResponseHourly {
+  period_types?: { p: { parts: { basic: { content: string } } } }
+}
+
+export interface ResponseDaily {
+  period_types?: { h: { parts: { basic: { content: string } } } }
+}
+
+export type DataWindStateType = {
+  direction: {
+    angle: number
+    letters: string
+  }
+  speed: number
+}
+
+export type DataDateType = string
+
+export type DataSwellEnergyType = {
+  value: number
+  colors: {
+    background: string
+    text: string
+  }
+}[]

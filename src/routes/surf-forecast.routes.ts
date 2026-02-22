@@ -7,9 +7,15 @@ export const SurfForecastRouter = Router()
 
 SurfForecastRouter.get('/spots', SurfForecastController.getAllSpots)
 SurfForecastRouter.get(
-  '/:spot',
+  '/:spot/hourly',
   validate(surfForecastSpotSchema),
-  SurfForecastController.getSurfForecasts,
+  SurfForecastController.getHourlySurfForecasts,
+)
+
+SurfForecastRouter.get(
+  '/:spot/general',
+  validate(surfForecastSpotSchema),
+  SurfForecastController.getGeneralSurfForecasts,
 )
 
 SurfForecastRouter.delete('/', SurfForecastController.deleteSurfForecast)

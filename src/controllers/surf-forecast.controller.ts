@@ -4,7 +4,7 @@ import { asyncHandler } from '../middleware/asyncHandler'
 import { NotFoundError } from '../errors/AppError'
 
 export class SurfForecastController {
-  static getSurfForecasts = asyncHandler(
+  static getHourlySurfForecasts = asyncHandler(
     async (req: Request, res: Response) => {
       const { spot } = req.params
       const { page, limit } = req.query
@@ -13,6 +13,27 @@ export class SurfForecastController {
         spot,
         page: Number(page),
         limit: Number(limit),
+        source: 'hourly_48h',
+      })
+
+      if (!forecasts.length) {
+        throw new NotFoundError('No forecasts found for the specified spot')
+      }
+
+      res.json(forecasts)
+    },
+  )
+
+  static getGeneralSurfForecasts = asyncHandler(
+    async (req: Request, res: Response) => {
+      const { spot } = req.params
+      const { page, limit } = req.query
+
+      const forecasts = await SurfForecastModel.getSurfForecasts({
+        spot,
+        page: Number(page),
+        limit: Number(limit),
+        source: 'general_7d',
       })
 
       if (!forecasts.length) {

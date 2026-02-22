@@ -285,8 +285,8 @@ describe('API Routes', () => {
     })
   })
 
-  describe('GET /surf-forecast/:spot', () => {
-    it('should return surf forecasts', async () => {
+  describe('GET /surf-forecast/:spot/hourly', () => {
+    it('should return hourly surf forecasts', async () => {
       const mockForecasts: WaveData[] = [
         {
           date: new Date('2026-01-07T18:18:54.583Z'),
@@ -294,12 +294,13 @@ describe('API Routes', () => {
           validSwells: [],
           wind: { speed: 10, angle: 180 },
           energy: 500,
+          source: 'hourly_48h',
         },
       ]
       mockGetSurfForecasts.mockResolvedValue(mockForecasts)
 
       const response = await request(app)
-        .get('/surf-forecast/test-spot')
+        .get('/surf-forecast/test-spot/hourly')
         .query({ page: 1, limit: 50 })
 
       expect(response.status).toBe(200)
@@ -310,35 +311,70 @@ describe('API Routes', () => {
           validSwells: [],
           wind: { speed: 10, angle: 180 },
           energy: 500,
+          source: 'hourly_48h',
         },
       ])
       expect(mockGetSurfForecasts).toHaveBeenCalledWith({
         spot: 'test-spot',
         page: 1,
         limit: 50,
+        source: 'hourly_48h',
       })
     })
 
-    it('should use default values', async () => {
+    it('should use default values for hourly endpoint', async () => {
       const mockForecasts: WaveData[] = []
       mockGetSurfForecasts.mockResolvedValue(mockForecasts)
 
-      await request(app).get('/surf-forecast/test-spot')
+      await request(app).get('/surf-forecast/test-spot/hourly')
 
       expect(mockGetSurfForecasts).toHaveBeenCalledWith({
         spot: 'test-spot',
         page: 1,
         limit: 50,
+        source: 'hourly_48h',
       })
     })
 
     it('should handle errors', async () => {
       mockGetSurfForecasts.mockRejectedValue(new Error('DB error'))
 
-      const response = await request(app).get('/surf-forecast/test-spot')
+      const response = await request(app).get('/surf-forecast/test-spot/hourly')
 
       expect(response.status).toBe(500)
       expect(response.body).toHaveProperty('error')
+    })
+  })
+
+  describe('GET /surf-forecast/:spot/general', () => {
+    it('should return general surf forecasts', async () => {
+      const mockForecasts: WaveData[] = [
+        {
+          date: new Date('2026-01-07T22:00:00.000Z'),
+          spot: 'test-spot',
+          validSwells: [],
+          wind: { speed: 12, angle: 200 },
+          energy: 400,
+          source: 'general_7d',
+        },
+      ]
+      mockGetSurfForecasts.mockResolvedValue(mockForecasts)
+
+      const response = await request(app)
+        .get('/surf-forecast/test-spot/general')
+        .query({ page: 1, limit: 50 })
+
+      expect(response.status).toBe(200)
+      expect(response.body[0]).toMatchObject({
+        spot: 'test-spot',
+        source: 'general_7d',
+      })
+      expect(mockGetSurfForecasts).toHaveBeenCalledWith({
+        spot: 'test-spot',
+        page: 1,
+        limit: 50,
+        source: 'general_7d',
+      })
     })
   })
 
