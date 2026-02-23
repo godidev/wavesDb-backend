@@ -6,13 +6,13 @@ import { surfForecastSpotSchema } from '@schemas/surf-forecast.schema'
 export const SurfForecastRouter = Router()
 
 SurfForecastRouter.get(
-  '/:spot/hourly',
+  '/:spotId/hourly',
   validate(surfForecastSpotSchema),
   SurfForecastController.getHourlySurfForecasts,
 )
 
 SurfForecastRouter.get(
-  '/:spot/general',
+  '/:spotId/general',
   validate(surfForecastSpotSchema),
   SurfForecastController.getGeneralSurfForecasts,
 )

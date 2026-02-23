@@ -20,7 +20,7 @@ const WindSchema = new Schema(
 
 export const SurfForecastSchema = new Schema({
   date: { type: Date, required: true },
-  spot: { type: String, required: true },
+  spotId: { type: String, required: true },
   validSwells: { type: [SwellSchema], required: true, default: [] },
   wind: { type: WindSchema, required: true },
   energy: { type: Number, required: true },
@@ -31,30 +31,21 @@ export const SurfForecastSchema = new Schema({
   },
 })
 
-SurfForecastSchema.index({ spot: 1, date: -1, source: 1 }, { unique: true })
+SurfForecastSchema.index({ spotId: 1, date: -1, source: 1 }, { unique: true })
 
 export type SurfForecastDoc = InferSchemaType<typeof SurfForecastSchema>
 
 const SurfForecast = model<SurfForecastDoc>('SurfForecast', SurfForecastSchema)
 
 export class SurfForecastModel {
-  static async getAllSpots() {
-    try {
-      const spots = await SurfForecast.distinct('spot')
-      return spots
-    } catch {
-      throw new Error("Couldn't get spots from the database")
-    }
-  }
-
   static async getSurfForecasts({
-    spot,
+    spotId,
     page,
     limit,
     hoursBeforeNow = 3,
     source,
   }: {
-    spot: string
+    spotId: string
     page: number
     limit: number
     hoursBeforeNow?: number
@@ -63,7 +54,7 @@ export class SurfForecastModel {
     hoursBeforeNow = source === 'hourly_48h' ? hoursBeforeNow : 12
     try {
       const forecast: WaveData[] = await SurfForecast.find({
-        spot,
+        spotId,
         date: { $gte: new Date(Date.now() - hoursBeforeNow * 60 * 60 * 1000) },
         source,
       })
@@ -83,7 +74,7 @@ export class SurfForecastModel {
 
       const ops = forecast.map((data) => ({
         updateOne: {
-          filter: { spot: data.spot, date: data.date, source: data.source },
+          filter: { spotId: data.spotId, date: data.date, source: data.source },
           update: { $set: data },
           upsert: true,
         },

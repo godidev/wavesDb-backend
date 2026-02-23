@@ -7,11 +7,11 @@ import { SpotInfoModel } from '@models/spotInfo.model'
 export class SurfForecastController {
   static getHourlySurfForecasts = asyncHandler(
     async (req: Request, res: Response) => {
-      const { spot } = req.params
+      const { spotId } = req.params
       const { page, limit } = req.query
 
       const forecasts = await SurfForecastModel.getSurfForecasts({
-        spot,
+        spotId,
         page: Number(page),
         limit: Number(limit),
         source: 'hourly_48h',
@@ -27,11 +27,11 @@ export class SurfForecastController {
 
   static getGeneralSurfForecasts = asyncHandler(
     async (req: Request, res: Response) => {
-      const { spot } = req.params
+      const { spotId } = req.params
       const { page, limit } = req.query
 
       const forecasts = await SurfForecastModel.getSurfForecasts({
-        spot,
+        spotId,
         page: Number(page),
         limit: Number(limit),
         source: 'general_7d',

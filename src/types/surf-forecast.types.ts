@@ -2,7 +2,7 @@ export type validSwells = Omit<DataSwell, 'letters'>[]
 
 export interface WaveData {
   date: Date
-  spot: string
+  spotId: string
   validSwells: validSwells
   wind: {
     speed: number

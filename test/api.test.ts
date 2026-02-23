@@ -4,6 +4,7 @@ import app from '../src/index'
 import { BuoyDataModel } from '../src/models/buoyData.model'
 import { BuoyInfoModel } from '../src/models/buoyInfo.model'
 import { SurfForecastModel } from '../src/models/surf-forecast.model'
+import { SpotInfoModel } from '../src/models/spotInfo.model'
 import { WaveData } from '../src/types/surf-forecast.types'
 
 // Set test environment variables
@@ -21,6 +22,7 @@ vi.mock('../src/models/buoyData.model', () => ({
 vi.mock('../src/models/buoyInfo.model', () => ({
   BuoyInfoModel: {
     getAllBuoysInfo: vi.fn(),
+    getNearestBuoysInfo: vi.fn(),
     getBuoysInfoById: vi.fn(),
     addBuoyInfo: vi.fn(),
     deleteBuoysInfo: vi.fn(),
@@ -32,6 +34,14 @@ vi.mock('../src/models/surf-forecast.model', () => ({
     getSurfForecasts: vi.fn(),
     deleteSurfForecast: vi.fn(),
     addMultipleForecast: vi.fn(),
+  },
+}))
+
+vi.mock('../src/models/spotInfo.model', () => ({
+  SpotInfoModel: {
+    getAllSpotsInfo: vi.fn(),
+    addSpotInfo: vi.fn(),
+    deleteSpotsInfo: vi.fn(),
   },
 }))
 
@@ -65,6 +75,10 @@ const mockDeleteBuoyData = BuoyDataModel.deleteBuoyData as MockedFunction<
 const mockGetAllBuoysInfo = BuoyInfoModel.getAllBuoysInfo as MockedFunction<
   typeof BuoyInfoModel.getAllBuoysInfo
 >
+const mockGetNearestBuoysInfo =
+  BuoyInfoModel.getNearestBuoysInfo as MockedFunction<
+    typeof BuoyInfoModel.getNearestBuoysInfo
+  >
 const mockGetBuoysInfoById = BuoyInfoModel.getBuoysInfoById as MockedFunction<
   typeof BuoyInfoModel.getBuoysInfoById
 >
@@ -84,6 +98,17 @@ const mockDeleteSurfForecast =
   SurfForecastModel.deleteSurfForecast as MockedFunction<
     typeof SurfForecastModel.deleteSurfForecast
   >
+
+// Get typed mocks for SpotInfoModel
+const mockGetAllSpotsInfo = SpotInfoModel.getAllSpotsInfo as MockedFunction<
+  typeof SpotInfoModel.getAllSpotsInfo
+>
+const mockAddSpotInfo = SpotInfoModel.addSpotInfo as MockedFunction<
+  typeof SpotInfoModel.addSpotInfo
+>
+const mockDeleteSpotsInfo = SpotInfoModel.deleteSpotsInfo as MockedFunction<
+  typeof SpotInfoModel.deleteSpotsInfo
+>
 
 // Import and type the utils mocks
 const { scheduledUpdate } = await import('../src/utils/buoy.service')
@@ -127,6 +152,47 @@ describe('API Routes', () => {
 
       expect(response.status).toBe(500)
       expect(response.body).toHaveProperty('error')
+    })
+  })
+
+  describe('GET /buoys/near', () => {
+    it('should return nearest buoys by geo query', async () => {
+      const mockNearest = [
+        {
+          buoyId: '2136',
+          buoyName: 'Boya de Bilbao-Vizcaya',
+        },
+      ]
+      mockGetNearestBuoysInfo.mockResolvedValue(mockNearest)
+
+      const response = await request(app).get(
+        '/buoys/near?longitude=-3.0371&latitude=43.6352&maxDistanceKm=20',
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual(mockNearest)
+      expect(mockGetNearestBuoysInfo).toHaveBeenCalledWith(-3.0371, 43.6352, 20)
+    })
+
+    it('should use default maxDistanceKm when omitted', async () => {
+      mockGetNearestBuoysInfo.mockResolvedValue([])
+
+      const response = await request(app).get(
+        '/buoys/near?longitude=-3.0371&latitude=43.6352',
+      )
+
+      expect(response.status).toBe(200)
+      expect(mockGetNearestBuoysInfo).toHaveBeenCalledWith(-3.0371, 43.6352, 10)
+    })
+
+    it('should reject invalid geo params', async () => {
+      const response = await request(app).get(
+        '/buoys/near?longitude=200&latitude=43.6352&maxDistanceKm=20',
+      )
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+      expect(mockGetNearestBuoysInfo).not.toHaveBeenCalled()
     })
   })
 
@@ -290,7 +356,7 @@ describe('API Routes', () => {
       const mockForecasts: WaveData[] = [
         {
           date: new Date('2026-01-07T18:18:54.583Z'),
-          spot: 'test-spot',
+          spotId: 'test-spot',
           validSwells: [],
           wind: { speed: 10, angle: 180 },
           energy: 500,
@@ -351,7 +417,7 @@ describe('API Routes', () => {
       const mockForecasts: WaveData[] = [
         {
           date: new Date('2026-01-07T22:00:00.000Z'),
-          spot: 'test-spot',
+          spotId: 'test-spot',
           validSwells: [],
           wind: { speed: 12, angle: 200 },
           energy: 400,
@@ -375,6 +441,80 @@ describe('API Routes', () => {
         limit: 50,
         source: 'general_7d',
       })
+    })
+  })
+
+  describe('GET /spots', () => {
+    it('should return all spots info', async () => {
+      const mockSpots = [
+        {
+          spotId: 'a3f9f8b5-7f9f-4c8b-b6ef-9917d4db1949',
+          spotName: 'Sopelana',
+          location: { type: 'Point' as const, coordinates: [-3.0, 43.4] },
+        },
+      ]
+      mockGetAllSpotsInfo.mockResolvedValue(mockSpots)
+
+      const response = await request(app).get('/spots')
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual(mockSpots)
+      expect(mockGetAllSpotsInfo).toHaveBeenCalled()
+    })
+  })
+
+  describe('POST /spots', () => {
+    it('should add a new spot info', async () => {
+      mockAddSpotInfo.mockResolvedValue(undefined)
+
+      const response = await request(app)
+        .post('/spots')
+        .send({
+          spotName: 'Sopelana',
+          location: {
+            type: 'Point',
+            coordinates: [-3.0, 43.4],
+          },
+        })
+
+      expect(response.status).toBe(201)
+      expect(response.body).toEqual({
+        message: 'New spot info added successfully',
+      })
+      expect(mockAddSpotInfo).toHaveBeenCalledWith({
+        spotName: 'Sopelana',
+        location: {
+          type: 'Point',
+          coordinates: [-3.0, 43.4],
+        },
+      })
+    })
+
+    it('should reject invalid spot coordinates', async () => {
+      const response = await request(app)
+        .post('/spots')
+        .send({
+          spotName: 'Sopelana',
+          location: {
+            coordinates: [-3.0],
+          },
+        })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+      expect(mockAddSpotInfo).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('DELETE /spots', () => {
+    it('should delete spots info', async () => {
+      mockDeleteSpotsInfo.mockResolvedValue(undefined)
+
+      const response = await request(app).delete('/spots')
+
+      expect(response.status).toBe(200)
+      expect(response.text).toBe('Spot info deleted successfully!')
+      expect(mockDeleteSpotsInfo).toHaveBeenCalled()
     })
   })
 
