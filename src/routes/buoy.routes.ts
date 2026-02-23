@@ -3,12 +3,18 @@ import { BuoyController } from '@controllers/buoy.controller'
 import { validate } from '../middleware/validate'
 import {
   buoyIdSchema,
+  buoyNearSchema,
   buoyLimitSchema,
   addBuoySchema,
 } from '@schemas/buoy.schema'
 
 export const buoysRouter = Router()
 
+buoysRouter.get(
+  '/near',
+  validate(buoyNearSchema),
+  BuoyController.getNearestBuoys,
+)
 buoysRouter.get('/', BuoyController.getBuoys)
 buoysRouter.get(
   '/:id/data',

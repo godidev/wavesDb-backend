@@ -15,6 +15,18 @@ export const buoyLimitSchema = z.object({
   }),
 })
 
+export const buoyNearSchema = z.object({
+  query: z.object({
+    longitude: z.coerce.number().min(-180).max(180, 'Invalid longitude'),
+    latitude: z.coerce.number().min(-90).max(90, 'Invalid latitude'),
+    maxDistanceKm: z.coerce
+      .number()
+      .positive('maxDistanceKm must be a positive number')
+      .max(1000, 'maxDistanceKm must be less than or equal to 1000')
+      .default(10),
+  }),
+})
+
 export const addBuoySchema = z.object({
   params: z.object({
     id: z.string().min(1, 'Buoy ID is required'),

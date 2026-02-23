@@ -48,3 +48,8 @@ export type DataSwellEnergyType = {
     text: string
   }
 }[]
+
+export type AddSpotInfo = {
+  spotName: string
+  location: { type?: 'Point'; coordinates: [number, number] }
+}

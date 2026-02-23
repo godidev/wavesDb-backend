@@ -2,6 +2,7 @@ import { SurfForecastModel } from '@models/surf-forecast.model'
 import { Request, Response } from 'express'
 import { asyncHandler } from '../middleware/asyncHandler'
 import { NotFoundError } from '../errors/AppError'
+import { SpotInfoModel } from '@models/spotInfo.model'
 
 export class SurfForecastController {
   static getHourlySurfForecasts = asyncHandler(
@@ -45,7 +46,7 @@ export class SurfForecastController {
   )
 
   static getAllSpots = asyncHandler(async (_req: Request, res: Response) => {
-    const spots = await SurfForecastModel.getAllSpots()
+    const spots = await SpotInfoModel.getAllSpotsInfo()
     res.json(spots)
   })
 
@@ -55,4 +56,10 @@ export class SurfForecastController {
       res.status(200).send('Surf Forecast data deleted successfully!')
     },
   )
+
+  static addSpotInfo = asyncHandler(async (req: Request, res: Response) => {
+    const { spotName, location } = req.body
+    await SpotInfoModel.addSpotInfo({ spotName, location })
+    res.status(201).json({ message: 'New spot info added successfully' })
+  })
 }

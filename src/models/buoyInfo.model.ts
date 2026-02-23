@@ -30,6 +30,26 @@ export class BuoyInfoModel {
     return BuoyInfo.find().select('-_id -__v').lean<BuoyInfoDoc[]>()
   }
 
+  static async getNearestBuoysInfo(
+    longitude: number,
+    latitude: number,
+    maxDistanceKm: number,
+  ): Promise<Pick<BuoyInfoDoc, 'buoyId' | 'buoyName'>[]> {
+    return BuoyInfo.find({
+      location: {
+        $nearSphere: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+          $maxDistance: maxDistanceKm * 1000,
+        },
+      },
+    })
+      .select('buoyId buoyName -_id')
+      .lean<Pick<BuoyInfoDoc, 'buoyId' | 'buoyName'>[]>()
+  }
+
   static async getBuoysInfoById(id: string): Promise<BuoyInfoDoc | null> {
     return BuoyInfo.findOne({ buoyId: id })
       .select('-_id -__v')

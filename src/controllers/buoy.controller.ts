@@ -2,11 +2,26 @@ import { BuoyDataModel } from '@models/buoyData.model'
 import { BuoyInfoModel } from '@models/buoyInfo.model'
 import { Request, Response } from 'express'
 import { asyncHandler } from '../middleware/asyncHandler'
+import { z } from 'zod'
+import { buoyNearSchema } from '@schemas/buoy.schema'
+
+type BuoyNearQuery = z.infer<typeof buoyNearSchema>['query']
 
 export class BuoyController {
   static getBuoys = asyncHandler(async (_req: Request, res: Response) => {
     const buoys = await BuoyInfoModel.getAllBuoysInfo()
     res.json(buoys)
+  })
+
+  static getNearestBuoys = asyncHandler(async (req: Request, res: Response) => {
+    const { longitude, latitude, maxDistanceKm } =
+      req.query as unknown as BuoyNearQuery
+    const nearestBuoys = await BuoyInfoModel.getNearestBuoysInfo(
+      longitude,
+      latitude,
+      maxDistanceKm,
+    )
+    res.json(nearestBuoys)
   })
 
   static getBuoyInfo = asyncHandler(async (req: Request, res: Response) => {

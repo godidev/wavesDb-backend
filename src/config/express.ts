@@ -5,6 +5,7 @@ import { scrapeRouter } from '@routes/scrape.routes'
 import { SurfForecastRouter } from '@routes/surf-forecast.routes'
 import { errorHandler } from '../middleware/errorHandler'
 import { loadEnvironment } from './environment'
+import { SpotRouter } from '@routes/spot.routes'
 
 export const createApp = (): Express => {
   const app = express()
@@ -29,6 +30,7 @@ export const createApp = (): Express => {
   app.use('/buoys', buoysRouter)
   app.use('/surf-forecast', SurfForecastRouter)
   app.use('/scrape', scrapeRouter)
+  app.use('/spots', SpotRouter)
 
   // Error handler global - DEBE ir al final
   app.use(errorHandler)
