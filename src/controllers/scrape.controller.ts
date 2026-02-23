@@ -1,6 +1,9 @@
 import { Request, Response } from 'express'
 import { asyncHandler } from '../middleware/asyncHandler'
-import { scrapeAll } from '@services/scraper.service'
+import {
+  fetchAndUpdateSurfForecastBreaks,
+  scrapeAll,
+} from '@services/scraper.service'
 import { loadEnvironment } from '@config/environment'
 
 const isManualScrapeAuthorized = (req: Request): boolean => {
@@ -12,10 +15,26 @@ const isManualScrapeAuthorized = (req: Request): boolean => {
 }
 
 export class ScrapeController {
-  /**
-   * Triggers manual scraping of all data sources
-   * GET /scrape
-   */
+  static scrapeSurfForecastBreaks = asyncHandler(
+    async (req: Request, res: Response) => {
+      if (!isManualScrapeAuthorized(req)) {
+        res.status(401).json({ error: 'Unauthorized' })
+        return
+      }
+
+      const breaks = await fetchAndUpdateSurfForecastBreaks()
+      if (!breaks) {
+        res.status(500).json({ error: 'Failed to scrape surf forecast breaks' })
+        return
+      }
+
+      res.status(200).json({
+        message: 'Surf forecast breaks scraped and updated successfully!',
+        breaks: breaks.length,
+      })
+    },
+  )
+
   static triggerScrape = asyncHandler(async (req: Request, res: Response) => {
     if (!isManualScrapeAuthorized(req)) {
       res.status(401).json({ error: 'Unauthorized' })

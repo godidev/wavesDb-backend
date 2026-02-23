@@ -1,6 +1,10 @@
 import Router from 'express'
 import { validate } from '../middleware/validate'
-import { addSpotInfoSchema } from '@schemas/surf-forecast.schema'
+import {
+  addSpotInfoSchema,
+  deleteSpotInfoSchema,
+  updateSpotInfoSchema,
+} from '@schemas/spot.schema'
 import { SpotInfoController } from '@controllers/spot.controller'
 
 export const SpotRouter = Router()
@@ -11,4 +15,13 @@ SpotRouter.post(
   validate(addSpotInfoSchema),
   SpotInfoController.addSpotInfo,
 )
-SpotRouter.delete('/', SpotInfoController.deleteSpotsInfo)
+SpotRouter.delete(
+  '/',
+  validate(deleteSpotInfoSchema),
+  SpotInfoController.deleteSpotsInfo,
+)
+SpotRouter.patch(
+  '/:spotId',
+  validate(updateSpotInfoSchema),
+  SpotInfoController.updateSpotInfo,
+)

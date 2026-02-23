@@ -318,11 +318,13 @@ export async function updateSurfForecast() {
   let updatedSpots = 0
   const failedSpots: string[] = []
 
-  const spotNames = await SpotInfoModel.getAllSpotsInfo().then((spots) =>
-    spots.map(({ spotName, spotId }) => ({ spotName, spotId })),
+  const activeSpots = await SpotInfoModel.getAllSpotsInfo().then((spots) =>
+    spots
+      .filter((spot) => spot.active)
+      .map(({ spotName, spotId }) => ({ spotName, spotId })),
   )
 
-  for (const { spotId, spotName } of spotNames) {
+  for (const { spotId, spotName } of activeSpots) {
     await sleep(rand(2500, 8000))
     try {
       const hourlyHtml = await fetchSurfForecastHourly(spotName)

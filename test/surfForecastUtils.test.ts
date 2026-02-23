@@ -40,11 +40,13 @@ describe('parseHourlyForecast', () => {
         </tr>
       </table>
     `
-    const beachSpot = 'test-spot'
-    const result = await parseHourlyForecast(beachSpot, mockHtml)
+    const spotId = 'a3f9f8b5-7f9f-4c8b-b6ef-9917d4db1949'
+    const spotName = 'test-spot'
+    const result = await parseHourlyForecast(spotId, spotName, mockHtml)
 
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({
+      spotId,
       source: 'hourly_48h',
       validSwells: [{ angle: 90, height: 1.5, period: 10 }],
       wind: { speed: 10, angle: 360 },

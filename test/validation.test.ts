@@ -189,28 +189,30 @@ describe('Zod Validation Schemas', () => {
   })
 
   describe('surfForecastSpotSchema', () => {
+    const validSpotId = 'a3f9f8b5-7f9f-4c8b-b6ef-9917d4db1949'
+
     it('should validate correct spot parameter with defaults', () => {
-      const data = { params: { spot: 'test-spot' }, query: {} }
+      const data = { params: { spotId: validSpotId }, query: {} }
       const result = surfForecastSpotSchema.parse(data)
-      expect(result.params.spot).toBe('test-spot')
+      expect(result.params.spotId).toBe(validSpotId)
       expect(result.query.page).toBe(1)
       expect(result.query.limit).toBe(50)
     })
 
     it('should validate with custom page and limit', () => {
       const data = {
-        params: { spot: 'test-spot' },
+        params: { spotId: validSpotId },
         query: { page: 2, limit: 100 },
       }
       const result = surfForecastSpotSchema.parse(data)
-      expect(result.params.spot).toBe('test-spot')
+      expect(result.params.spotId).toBe(validSpotId)
       expect(result.query.page).toBe(2)
       expect(result.query.limit).toBe(100)
     })
 
     it('should coerce string query params to numbers', () => {
       const data = {
-        params: { spot: 'test-spot' },
+        params: { spotId: validSpotId },
         query: { page: '3', limit: '75' },
       }
       const result = surfForecastSpotSchema.parse(data)
@@ -220,7 +222,7 @@ describe('Zod Validation Schemas', () => {
 
     it('should reject page below minimum', () => {
       const data = {
-        params: { spot: 'test-spot' },
+        params: { spotId: validSpotId },
         query: { page: 0, limit: 50 },
       }
       expect(() => surfForecastSpotSchema.parse(data)).toThrow()
@@ -228,7 +230,7 @@ describe('Zod Validation Schemas', () => {
 
     it('should reject limit above maximum', () => {
       const data = {
-        params: { spot: 'test-spot' },
+        params: { spotId: validSpotId },
         query: { page: 1, limit: 201 },
       }
       expect(() => surfForecastSpotSchema.parse(data)).toThrow()
@@ -236,18 +238,18 @@ describe('Zod Validation Schemas', () => {
 
     it('should reject limit below minimum', () => {
       const data = {
-        params: { spot: 'test-spot' },
+        params: { spotId: validSpotId },
         query: { page: 1, limit: 0 },
       }
       expect(() => surfForecastSpotSchema.parse(data)).toThrow()
     })
 
-    it('should reject empty spot', () => {
-      const data = { params: { spot: '' }, query: {} }
+    it('should reject invalid spotId', () => {
+      const data = { params: { spotId: 'invalid-id' }, query: {} }
       expect(() => surfForecastSpotSchema.parse(data)).toThrow()
     })
 
-    it('should reject missing spot', () => {
+    it('should reject missing spotId', () => {
       const data = { params: {}, query: {} }
       expect(() => surfForecastSpotSchema.parse(data)).toThrow()
     })

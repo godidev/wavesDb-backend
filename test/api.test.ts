@@ -123,6 +123,8 @@ const mockUpdateSurfForecast = updateSurfForecast as MockedFunction<
 >
 
 describe('API Routes', () => {
+  const testSpotId = 'a3f9f8b5-7f9f-4c8b-b6ef-9917d4db1949'
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -351,12 +353,12 @@ describe('API Routes', () => {
     })
   })
 
-  describe('GET /surf-forecast/:spot/hourly', () => {
+  describe('GET /surf-forecast/:spotId/hourly', () => {
     it('should return hourly surf forecasts', async () => {
       const mockForecasts: WaveData[] = [
         {
           date: new Date('2026-01-07T18:18:54.583Z'),
-          spotId: 'test-spot',
+          spotId: testSpotId,
           validSwells: [],
           wind: { speed: 10, angle: 180 },
           energy: 500,
@@ -366,14 +368,14 @@ describe('API Routes', () => {
       mockGetSurfForecasts.mockResolvedValue(mockForecasts)
 
       const response = await request(app)
-        .get('/surf-forecast/test-spot/hourly')
+        .get(`/surf-forecast/${testSpotId}/hourly`)
         .query({ page: 1, limit: 50 })
 
       expect(response.status).toBe(200)
       expect(response.body).toEqual([
         {
           date: '2026-01-07T18:18:54.583Z',
-          spot: 'test-spot',
+          spotId: testSpotId,
           validSwells: [],
           wind: { speed: 10, angle: 180 },
           energy: 500,
@@ -381,7 +383,7 @@ describe('API Routes', () => {
         },
       ])
       expect(mockGetSurfForecasts).toHaveBeenCalledWith({
-        spot: 'test-spot',
+        spotId: testSpotId,
         page: 1,
         limit: 50,
         source: 'hourly_48h',
@@ -392,10 +394,10 @@ describe('API Routes', () => {
       const mockForecasts: WaveData[] = []
       mockGetSurfForecasts.mockResolvedValue(mockForecasts)
 
-      await request(app).get('/surf-forecast/test-spot/hourly')
+      await request(app).get(`/surf-forecast/${testSpotId}/hourly`)
 
       expect(mockGetSurfForecasts).toHaveBeenCalledWith({
-        spot: 'test-spot',
+        spotId: testSpotId,
         page: 1,
         limit: 50,
         source: 'hourly_48h',
@@ -405,19 +407,21 @@ describe('API Routes', () => {
     it('should handle errors', async () => {
       mockGetSurfForecasts.mockRejectedValue(new Error('DB error'))
 
-      const response = await request(app).get('/surf-forecast/test-spot/hourly')
+      const response = await request(app).get(
+        `/surf-forecast/${testSpotId}/hourly`,
+      )
 
       expect(response.status).toBe(500)
       expect(response.body).toHaveProperty('error')
     })
   })
 
-  describe('GET /surf-forecast/:spot/general', () => {
+  describe('GET /surf-forecast/:spotId/general', () => {
     it('should return general surf forecasts', async () => {
       const mockForecasts: WaveData[] = [
         {
           date: new Date('2026-01-07T22:00:00.000Z'),
-          spotId: 'test-spot',
+          spotId: testSpotId,
           validSwells: [],
           wind: { speed: 12, angle: 200 },
           energy: 400,
@@ -427,16 +431,16 @@ describe('API Routes', () => {
       mockGetSurfForecasts.mockResolvedValue(mockForecasts)
 
       const response = await request(app)
-        .get('/surf-forecast/test-spot/general')
+        .get(`/surf-forecast/${testSpotId}/general`)
         .query({ page: 1, limit: 50 })
 
       expect(response.status).toBe(200)
       expect(response.body[0]).toMatchObject({
-        spot: 'test-spot',
+        spotId: testSpotId,
         source: 'general_7d',
       })
       expect(mockGetSurfForecasts).toHaveBeenCalledWith({
-        spot: 'test-spot',
+        spotId: testSpotId,
         page: 1,
         limit: 50,
         source: 'general_7d',
@@ -471,6 +475,7 @@ describe('API Routes', () => {
         .post('/spots')
         .send({
           spotName: 'Sopelana',
+          spotUrlName: 'sopelana',
           location: {
             type: 'Point',
             coordinates: [-3.0, 43.4],
@@ -483,6 +488,7 @@ describe('API Routes', () => {
       })
       expect(mockAddSpotInfo).toHaveBeenCalledWith({
         spotName: 'Sopelana',
+        spotUrlName: 'sopelana',
         location: {
           type: 'Point',
           coordinates: [-3.0, 43.4],
@@ -495,6 +501,7 @@ describe('API Routes', () => {
         .post('/spots')
         .send({
           spotName: 'Sopelana',
+          spotUrlName: 'sopelana',
           location: {
             coordinates: [-3.0],
           },
@@ -510,10 +517,12 @@ describe('API Routes', () => {
     it('should delete spots info', async () => {
       mockDeleteSpotsInfo.mockResolvedValue(undefined)
 
-      const response = await request(app).delete('/spots')
+      const response = await request(app).delete('/spots').send({})
 
       expect(response.status).toBe(200)
-      expect(response.text).toBe('Spot info deleted successfully!')
+      expect(response.body).toEqual({
+        message: 'All spot info deleted successfully',
+      })
       expect(mockDeleteSpotsInfo).toHaveBeenCalled()
     })
   })
