@@ -1,7 +1,23 @@
 import { InferSchemaType, Schema, model } from 'mongoose'
 import { NotFoundError } from '../errors/AppError'
 import { randomUUID } from 'node:crypto'
-import { AddSpotInfoBody } from '@schemas/spot.schema'
+import { AddSpotInfoBody, UpdateSpotInfoBody } from '@schemas/spot.schema'
+
+const windRangeSchema = new Schema(
+  {
+    from: { type: Number, required: true, min: 0, max: 360 },
+    to: { type: Number, required: true, min: 0, max: 360 },
+  },
+  { _id: false },
+)
+
+const periodRangeSchema = new Schema(
+  {
+    from: { type: Number, required: true, min: 0, max: 25 },
+    to: { type: Number, required: true, min: 0, max: 25 },
+  },
+  { _id: false },
+)
 
 const spotInfoSchema = new Schema(
   {
@@ -24,6 +40,18 @@ const spotInfoSchema = new Schema(
     },
     active: { type: Boolean, default: false },
     spotUrlName: { type: String, required: true, unique: true },
+    optimalConditions: {
+      swellPeriod: {
+        epic: { type: [periodRangeSchema], required: true },
+        limit: { type: [periodRangeSchema], required: true },
+        poor: { type: [periodRangeSchema], required: true },
+      },
+      windDirection: {
+        epic: { type: [windRangeSchema], required: true },
+        limit: { type: [windRangeSchema], required: true },
+        poor: { type: [windRangeSchema], required: true },
+      },
+    },
   },
   { collection: 'spotsInfo' },
 )
@@ -41,13 +69,12 @@ export class SpotInfoModel {
 
   static async updateSpotInfo(
     spotId: string,
-    active: boolean,
-    coordinates?: [number, number],
+    updateData: UpdateSpotInfoBody,
   ): Promise<void> {
-    const updateData: Partial<SpotInfoDoc> = { active }
-    if (coordinates) {
-      updateData.location = { type: 'Point', coordinates }
+    if (!spotId) {
+      throw new Error('spotId is required for updating spot info')
     }
+
     const res = await SpotInfo.updateOne({ spotId }, updateData)
     if (res.matchedCount === 0) {
       throw new NotFoundError(`No spot found with ID: ${spotId}`)

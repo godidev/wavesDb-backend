@@ -42,9 +42,9 @@ export class SpotInfoController {
 
   static updateSpotInfo = asyncHandler(async (req: Request, res: Response) => {
     const { spotId } = req.params as UpdateSpotInfoParams
-    const { active, coordinates } = req.body as UpdateSpotInfoBody
+    const updateData = req.body as UpdateSpotInfoBody
 
-    await SpotInfoModel.updateSpotInfo(spotId, active, coordinates)
-    res.status(200).json({ message: 'Spot active status updated successfully' })
+    await SpotInfoModel.updateSpotInfo(spotId, updateData)
+    res.status(200).json({ message: 'Spot info updated successfully' })
   })
 }

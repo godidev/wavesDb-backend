@@ -42,6 +42,7 @@ vi.mock('../src/models/spotInfo.model', () => ({
     getAllSpotsInfo: vi.fn(),
     addSpotInfo: vi.fn(),
     deleteSpotsInfo: vi.fn(),
+    updateSpotInfo: vi.fn(),
   },
 }))
 
@@ -108,6 +109,9 @@ const mockAddSpotInfo = SpotInfoModel.addSpotInfo as MockedFunction<
 >
 const mockDeleteSpotsInfo = SpotInfoModel.deleteSpotsInfo as MockedFunction<
   typeof SpotInfoModel.deleteSpotsInfo
+>
+const mockUpdateSpotInfo = SpotInfoModel.updateSpotInfo as MockedFunction<
+  typeof SpotInfoModel.updateSpotInfo
 >
 
 // Import and type the utils mocks
@@ -454,6 +458,8 @@ describe('API Routes', () => {
         {
           spotId: 'a3f9f8b5-7f9f-4c8b-b6ef-9917d4db1949',
           spotName: 'Sopelana',
+          spotUrlName: 'sopelana',
+          active: true,
           location: { type: 'Point' as const, coordinates: [-3.0, 43.4] },
         },
       ]
@@ -524,6 +530,69 @@ describe('API Routes', () => {
         message: 'All spot info deleted successfully',
       })
       expect(mockDeleteSpotsInfo).toHaveBeenCalled()
+    })
+  })
+
+  describe('PATCH /spots/:spotId', () => {
+    it('should update spot info with active flag', async () => {
+      mockUpdateSpotInfo.mockResolvedValue(undefined)
+
+      const response = await request(app)
+        .patch(`/spots/${testSpotId}`)
+        .send({ active: true })
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        message: 'Spot info updated successfully',
+      })
+      expect(mockUpdateSpotInfo).toHaveBeenCalledWith(testSpotId, {
+        active: true,
+      })
+    })
+
+    it('should update spot info with optimalConditions only', async () => {
+      mockUpdateSpotInfo.mockResolvedValue(undefined)
+
+      const response = await request(app)
+        .patch(`/spots/${testSpotId}`)
+        .send({
+          optimalConditions: {
+            swellPeriod: {
+              epic: [{ from: 8, to: 12 }],
+              limit: [{ from: 6, to: 14 }],
+              poor: [{ from: 0, to: 5 }],
+            },
+          },
+        })
+
+      expect(response.status).toBe(200)
+      expect(mockUpdateSpotInfo).toHaveBeenCalledWith(testSpotId, {
+        optimalConditions: {
+          swellPeriod: {
+            epic: [{ from: 8, to: 12 }],
+            limit: [{ from: 6, to: 14 }],
+            poor: [{ from: 0, to: 5 }],
+          },
+        },
+      })
+    })
+
+    it('should reject empty patch body', async () => {
+      const response = await request(app).patch(`/spots/${testSpotId}`).send({})
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+      expect(mockUpdateSpotInfo).not.toHaveBeenCalled()
+    })
+
+    it('should reject invalid location object without coordinates', async () => {
+      const response = await request(app)
+        .patch(`/spots/${testSpotId}`)
+        .send({ location: {} })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toHaveProperty('error')
+      expect(mockUpdateSpotInfo).not.toHaveBeenCalled()
     })
   })
 

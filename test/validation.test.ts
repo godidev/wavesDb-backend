@@ -5,6 +5,7 @@ import {
   addBuoySchema,
 } from '../src/schemas/buoy.schema'
 import { surfForecastSpotSchema } from '../src/schemas/surf-forecast.schema'
+import { updateSpotInfoSchema } from '../src/schemas/spot.schema'
 
 describe('Zod Validation Schemas', () => {
   describe('buoyIdSchema', () => {
@@ -252,6 +253,63 @@ describe('Zod Validation Schemas', () => {
     it('should reject missing spotId', () => {
       const data = { params: {}, query: {} }
       expect(() => surfForecastSpotSchema.parse(data)).toThrow()
+    })
+  })
+
+  describe('updateSpotInfoSchema', () => {
+    const validSpotId = 'a3f9f8b5-7f9f-4c8b-b6ef-9917d4db1949'
+
+    it('should validate active-only patch body', () => {
+      const data = {
+        params: { spotId: validSpotId },
+        body: { active: true },
+      }
+      const result = updateSpotInfoSchema.parse(data)
+      expect(result.params.spotId).toBe(validSpotId)
+      expect(result.body.active).toBe(true)
+    })
+
+    it('should validate partial optimalConditions', () => {
+      const data = {
+        params: { spotId: validSpotId },
+        body: {
+          optimalConditions: {
+            swellPeriod: {
+              epic: [{ from: 8, to: 12 }],
+              limit: [{ from: 6, to: 14 }],
+              poor: [{ from: 0, to: 5 }],
+            },
+          },
+        },
+      }
+
+      const result = updateSpotInfoSchema.parse(data)
+      expect(result.body.optimalConditions?.swellPeriod).toBeDefined()
+      expect(result.body.optimalConditions?.windDirection).toBeUndefined()
+    })
+
+    it('should reject empty patch body', () => {
+      const data = {
+        params: { spotId: validSpotId },
+        body: {},
+      }
+      expect(() => updateSpotInfoSchema.parse(data)).toThrow()
+    })
+
+    it('should reject location without coordinates', () => {
+      const data = {
+        params: { spotId: validSpotId },
+        body: { location: {} },
+      }
+      expect(() => updateSpotInfoSchema.parse(data)).toThrow()
+    })
+
+    it('should reject empty optimalConditions object', () => {
+      const data = {
+        params: { spotId: validSpotId },
+        body: { optimalConditions: {} },
+      }
+      expect(() => updateSpotInfoSchema.parse(data)).toThrow()
     })
   })
 })
