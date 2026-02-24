@@ -14,6 +14,11 @@ export class SpotInfoController {
     res.json(spots)
   })
 
+  static getActiveSpots = asyncHandler(async (_req: Request, res: Response) => {
+    const activeSpots = await SpotInfoModel.getActiveSpotsInfo()
+    res.json(activeSpots)
+  })
+
   static addSpotInfo = asyncHandler(async (req: Request, res: Response) => {
     const { spotId, spotName, location, spotUrlName } =
       req.body as AddSpotInfoBody

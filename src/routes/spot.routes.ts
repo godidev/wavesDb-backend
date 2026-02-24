@@ -10,6 +10,7 @@ import { SpotInfoController } from '@controllers/spot.controller'
 export const SpotRouter = Router()
 
 SpotRouter.get('/', SpotInfoController.getAllSpots)
+SpotRouter.get('/active', SpotInfoController.getActiveSpots)
 SpotRouter.post(
   '/',
   validate(addSpotInfoSchema),

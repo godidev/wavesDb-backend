@@ -67,6 +67,12 @@ export class SpotInfoModel {
     return SpotInfo.find().select('-_id -__v').lean<SpotInfoDoc[]>()
   }
 
+  static async getActiveSpotsInfo(): Promise<SpotInfoDoc[]> {
+    return SpotInfo.find({ active: true })
+      .select('-_id -__v')
+      .lean<SpotInfoDoc[]>()
+  }
+
   static async updateSpotInfo(
     spotId: string,
     updateData: UpdateSpotInfoBody,
