@@ -126,7 +126,7 @@ async function fetchSurfForecastHourly(beach: string): Promise<string> {
 
 export async function parseHourlyForecast(
   spotId: string,
-  spotName: string,
+  spotUrlName: string,
   html: string,
 ): Promise<WaveData[]> {
   const now = new Date()
@@ -168,7 +168,7 @@ export async function parseHourlyForecast(
 
     if (!dataDate || !dataSwellState || !dataWind) {
       logger.debug(
-        { spotId, spotName, index, dataDate, dataSwellState, dataWind },
+        { spotId, spotUrlName, index, dataDate, dataSwellState, dataWind },
         'Skipping cell with missing attributes',
       )
       return
@@ -207,7 +207,7 @@ export async function parseHourlyForecast(
 
 export async function parseGeneralForecast(
   spotId: string,
-  spotName: string,
+  spotUrlName: string,
   html: string,
 ): Promise<WaveData[]> {
   const now = new Date()
@@ -249,7 +249,7 @@ export async function parseGeneralForecast(
 
     if (!dataDate || !dataSwellState || !dataWind) {
       logger.debug(
-        { spotId, spotName, index, dataDate, dataSwellState, dataWind },
+        { spotId, spotUrlName, index, dataDate, dataSwellState, dataWind },
         'Skipping cell with missing attributes',
       )
       return
@@ -321,34 +321,34 @@ export async function updateSurfForecast() {
   const activeSpots = await SpotInfoModel.getAllSpotsInfo().then((spots) =>
     spots
       .filter((spot) => spot.active)
-      .map(({ spotName, spotId }) => ({ spotName, spotId })),
+      .map(({ spotUrlName, spotId }) => ({ spotUrlName, spotId })),
   )
 
-  for (const { spotId, spotName } of activeSpots) {
+  for (const { spotId, spotUrlName } of activeSpots) {
     await sleep(rand(2500, 8000))
     try {
-      const hourlyHtml = await fetchSurfForecastHourly(spotName)
-      const generalHtml = await fetchSurfForecast7Days(spotName)
+      const hourlyHtml = await fetchSurfForecastHourly(spotUrlName)
+      const generalHtml = await fetchSurfForecast7Days(spotUrlName)
       const newGeneralHtml = `<html><body><table>${generalHtml}</table></body></html>`
       const parsedGeneralData = await parseGeneralForecast(
         spotId,
-        spotName,
+        spotUrlName,
         newGeneralHtml,
       )
       await SurfForecastModel.addMultipleForecast(parsedGeneralData)
       const newHourlyHtml = `<html><body><table>${hourlyHtml}</table></body></html>`
       const parsedHourlyData = await parseHourlyForecast(
         spotId,
-        spotName,
+        spotUrlName,
         newHourlyHtml,
       )
       await SurfForecastModel.addMultipleForecast(parsedHourlyData)
       updatedSpots += 1
     } catch (err) {
-      failedSpots.push(spotName)
+      failedSpots.push(spotUrlName)
       if (err instanceof Error) {
         logger.error(
-          { spotId, spotName, err: err.message },
+          { spotId, spotUrlName, err: err.message },
           'Error updating surf forecast',
         )
       }
