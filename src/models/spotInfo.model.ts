@@ -12,7 +12,7 @@ const spotInfoSchema = new Schema(
       index: true,
       default: () => randomUUID(),
     },
-    spotName: { type: String, required: true, unique: true },
+    spotName: { type: String, required: true },
     location: {
       type: {
         type: String,
@@ -28,7 +28,7 @@ const spotInfoSchema = new Schema(
   { collection: 'spotsInfo' },
 )
 
-spotInfoSchema.index({ location: '2dsphere', spotName: 1 })
+spotInfoSchema.index({ location: '2dsphere', spotUrlName: 1 })
 
 export type SpotInfoDoc = InferSchemaType<typeof spotInfoSchema>
 
