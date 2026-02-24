@@ -29,7 +29,7 @@ const windRangeSchema = z.object({
 
 const periodObjectSchema = z.object({
   from: z.number().min(0).max(25),
-  to: z.number().min(0).max(25),
+  to: z.number().min(1).max(99),
 })
 
 const periodRangeSchema = z.object({
